@@ -1,0 +1,6 @@
+/* Base Tailwind imports */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Global styles are handled in App.css */
+
