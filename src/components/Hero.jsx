@@ -7,7 +7,7 @@ const Hero = () => {
   const [transcript, setTranscript] = useState(null);
   const [error, setError] = useState(null);
 
-  const BACKEND_URL = 'https://5000-i714962ckr3pgp2k0087q-48e82c07.manusvm.computer';
+  const BACKEND_URL = 'https://transcriptflow-backend-production.up.railway.app';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
