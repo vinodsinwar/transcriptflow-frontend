@@ -265,6 +265,31 @@ const Hero = () => {
             </div>
           </div>
         )}
+
+        {/* Footer with Legal Links */}
+        <div className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-border/20">
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-muted-foreground">
+            <a 
+              href="/privacy-policy.html" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <span className="hidden sm:inline">•</span>
+            <a 
+              href="/terms-of-service.html" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors"
+            >
+              Terms of Service
+            </a>
+            <span className="hidden sm:inline">•</span>
+            <span>© 2025 TranscriptFlow. All rights reserved.</span>
+          </div>
+        </div>
       </div>
     </section>
   );
