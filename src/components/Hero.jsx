@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Play, Youtube, Clock, Shield, Users, Download, Copy, FileText } from 'lucide-react';
+import ProcessingOverlay from './ProcessingOverlay';
+import ResultBanner from './ResultBanner';
 
 const Hero = () => {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [transcript, setTranscript] = useState(null);
   const [error, setError] = useState(null);
+  const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
 
   const BACKEND_URL = 'https://transcriptflow-backend-production.up.railway.app';
 
@@ -16,6 +19,19 @@ const Hero = () => {
     setIsLoading(true);
     setError(null);
     setTranscript(null);
+    
+    // Show processing overlay with ads
+    setShowProcessingOverlay(true);
+    
+    // Track transcript generation start
+    if (typeof dataLayer !== 'undefined') {
+      dataLayer.push({
+        event: 'transcript_generation_started',
+        video_url: url.trim(),
+        timestamp: new Date().toISOString(),
+        user_action: 'generate_transcript_clicked'
+      });
+    }
     
     try {
       console.log('Generating transcript for:', url);
@@ -49,15 +65,51 @@ const Hero = () => {
           cached: data.cached,
           processing_time_ms: data.processing_time_ms
         });
+
+        // Track successful transcript generation
+        if (typeof dataLayer !== 'undefined') {
+          dataLayer.push({
+            event: 'transcript_generated',
+            video_url: url.trim(),
+            video_title: data.video_title,
+            language: data.language,
+            word_count: data.word_count,
+            processing_time_ms: data.processing_time_ms,
+            cached: data.cached,
+            success: true
+          });
+        }
       } else {
         console.log('Backend returned error:', data.error);
         setError(data.error || 'Failed to generate transcript');
+        
+        // Track transcript generation error
+        if (typeof dataLayer !== 'undefined') {
+          dataLayer.push({
+            event: 'transcript_generation_error',
+            video_url: url.trim(),
+            error_message: data.error || 'Failed to generate transcript',
+            success: false
+          });
+        }
       }
     } catch (err) {
       console.error('Error generating transcript:', err);
       setError('Failed to connect to server. Please try again.');
+      
+      // Track connection error
+      if (typeof dataLayer !== 'undefined') {
+        dataLayer.push({
+          event: 'transcript_generation_error',
+          video_url: url.trim(),
+          error_message: 'Failed to connect to server',
+          error_type: 'connection_error',
+          success: false
+        });
+      }
     } finally {
       setIsLoading(false);
+      setShowProcessingOverlay(false);
     }
   };
 
@@ -208,6 +260,12 @@ const Hero = () => {
         {/* Transcript Display */}
         {transcript && transcript.success && (
           <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
+            {/* Result Banner Ad */}
+            <ResultBanner 
+              isVisible={true}
+              transcript={transcript}
+            />
+
             {/* Video Info */}
             <div className="glass p-6 rounded-xl">
               <div className="flex items-start space-x-4">
@@ -265,7 +323,6 @@ const Hero = () => {
             </div>
           </div>
         )}
-
         {/* Footer with Legal Links */}
         <div className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-border/20">
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-muted-foreground">
@@ -291,6 +348,13 @@ const Hero = () => {
           </div>
         </div>
       </div>
+
+      {/* Processing Overlay with AdSense Ads */}
+      <ProcessingOverlay 
+        isVisible={showProcessingOverlay}
+        onClose={() => setShowProcessingOverlay(false)}
+        videoUrl={url}
+      />
     </section>
   );
 
