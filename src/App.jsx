@@ -1,5 +1,6 @@
 import Header from './components/Header';
 import Hero from './components/Hero';
+import SEOContent from './components/SEOContent';
 import Features from './components/Features';
 import HowItWorks from './components/HowItWorks';
 import UseCases from './components/UseCases';
@@ -12,6 +13,7 @@ function App() {
     <div className="App">
       <Header />
       <Hero />
+      <SEOContent />
       <Features />
       <HowItWorks />
       <UseCases />
