@@ -62,7 +62,7 @@ const About = () => {
               </div>
               <h4 className="text-lg font-semibold">Accuracy</h4>
               <p className="text-sm text-muted-foreground">
-                Industry-leading 99.8% accuracy powered by advanced AI technology.
+                Industry-leading accuracy sourced directly from each video's official captions.
               </p>
             </div>
             
@@ -91,10 +91,10 @@ const About = () => {
         {/* Technology */}
         <div className="bg-card/50 rounded-2xl p-8 mb-16">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold mb-4">Powered by Advanced AI</h3>
+            <h3 className="text-2xl font-bold mb-4">Built for Speed and Reliability</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our transcription engine combines multiple AI models and techniques to deliver 
-              unparalleled accuracy and speed.
+              Our engine fetches and formats the best available captions for every video,
+              delivering clean, timestamped transcripts in seconds.
             </p>
           </div>
           

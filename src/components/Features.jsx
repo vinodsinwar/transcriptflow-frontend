@@ -26,7 +26,7 @@ const Features = () => {
       icon: Target,
       title: '99.8%',
       subtitle: 'Accuracy',
-      description: 'Industry-leading accuracy with advanced AI processing and human-quality results.',
+      description: 'Industry-leading accuracy sourced from each video\'s official captions.',
       color: 'text-green-400'
     },
     {
@@ -61,8 +61,8 @@ const Features = () => {
     {
       icon: Download,
       title: 'Multiple Formats',
-      description: 'Download transcripts in TXT, SRT, or VTT formats for maximum compatibility.',
-      highlight: '3 Export Formats'
+      description: 'Copy timestamped text or download transcripts as TXT and SRT files.',
+      highlight: 'TXT & SRT'
     },
     {
       icon: Lock,
@@ -78,9 +78,9 @@ const Features = () => {
     },
     {
       icon: Brain,
-      title: 'AI-Powered Fallback',
-      description: 'Advanced speech-to-text AI for videos without existing captions or subtitles.',
-      highlight: '99.8% Accuracy'
+      title: 'Auto-Caption Support',
+      description: 'Works with YouTube auto-generated captions too, so most public videos can be transcribed.',
+      highlight: 'Widest coverage'
     }
   ];
 
@@ -171,10 +171,27 @@ const Features = () => {
               Join thousands of users who trust TranscriptFlow for their video transcription needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="btn-primary">
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  const input = document.querySelector('#youtube-url');
+                  if (input) {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    input.focus({ preventScroll: true });
+                  }
+                }}
+              >
                 Start Transcribing Now
               </button>
-              <button className="btn-secondary">
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  const section = document.querySelector('#how-it-works');
+                  if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 How It Works
               </button>
             </div>

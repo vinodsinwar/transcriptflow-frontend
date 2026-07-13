@@ -4,6 +4,15 @@ import { Menu, X, Zap } from 'lucide-react';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const goToInput = () => {
+    setIsMenuOpen(false);
+    const input = document.querySelector('#youtube-url');
+    if (input) {
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus({ preventScroll: true });
+    }
+  };
+
   const navItems = [
     { name: 'Home', href: '#home' },
     { name: 'Features', href: '#features' },
@@ -49,7 +58,7 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={goToInput}>
               Try Free
             </button>
           </div>
@@ -90,7 +99,7 @@ const Header = () => {
                 </a>
               ))}
               <div className="pt-2">
-                <button className="btn-primary w-full">
+                <button className="btn-primary w-full" onClick={goToInput}>
                   Try Free
                 </button>
               </div>

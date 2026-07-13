@@ -327,7 +327,7 @@ const Hero = () => {
         <div className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-border/20">
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-muted-foreground">
             <a 
-              href="/privacy-policy.html" 
+              href="/privacy-policy" 
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors"
@@ -336,7 +336,7 @@ const Hero = () => {
             </a>
             <span className="hidden sm:inline">•</span>
             <a 
-              href="/terms-of-service.html" 
+              href="/terms-of-service" 
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors"

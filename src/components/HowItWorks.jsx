@@ -13,8 +13,8 @@ const HowItWorks = () => {
     {
       number: '2',
       icon: Cpu,
-      title: 'AI Processing',
-      description: 'Our advanced AI analyzes the video, extracts existing captions, or generates new transcripts using state-of-the-art speech recognition.',
+      title: 'Caption Processing',
+      description: 'Our engine locates the best available captions for the video, including auto-generated ones, and cleans them into a readable transcript.',
       color: 'text-purple-400',
       bgColor: 'bg-purple-400/10'
     },
