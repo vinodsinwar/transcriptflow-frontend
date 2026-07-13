@@ -10,7 +10,7 @@ const Hero = () => {
   const [error, setError] = useState(null);
   const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
 
-  const BACKEND_URL = 'https://transcriptflow-backend-production.up.railway.app';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
