@@ -11,16 +11,20 @@ const Footer = () => {
   };
 
   const footerLinks = {
-    product: [
-      { name: 'Features', href: '#features' },
-      { name: 'How It Works', href: '#how-it-works' },
-      { name: 'Use Cases', href: '#use-cases' }
+    tools: [
+      { name: 'Transcript Generator', href: '/' },
+      { name: 'Translate Transcript', href: '/translate-youtube-transcript' },
+      { name: 'Download Subtitles', href: '/download-youtube-subtitles' }
+    ],
+    guides: [
+      { name: 'Get a YouTube Transcript', href: '/blog/how-to-get-youtube-video-transcript' },
+      { name: 'SRT vs VTT Formats', href: '/blog/download-youtube-subtitles-srt-vtt' },
+      { name: 'Translate YouTube Subtitles', href: '/blog/translate-youtube-subtitles' },
+      { name: 'Video to Blog Post', href: '/blog/youtube-video-to-blog-post' }
     ],
     support: [
       { name: 'Contact Us', href: '#contact' },
-      { name: 'Report a Bug', href: 'mailto:support@transcriptflow.io?subject=Bug%20Report' }
-    ],
-    legal: [
+      { name: 'Report a Bug', href: 'mailto:support@transcriptflow.io?subject=Bug%20Report' },
       { name: 'Privacy Policy', href: '/privacy-policy' },
       { name: 'Terms of Service', href: '/terms-of-service' }
     ]
@@ -90,33 +94,33 @@ const Footer = () => {
               </p>
             </div>
 
-            {/* Product Links */}
+            {/* Tools */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-4">
-                Product
+                Tools
               </h4>
               <ul className="space-y-3">
-                {footerLinks.product.map(renderLink)}
+                {footerLinks.tools.map(renderLink)}
               </ul>
             </div>
 
-            {/* Support Links */}
+            {/* Guides */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-4">
+                Guides
+              </h4>
+              <ul className="space-y-3">
+                {footerLinks.guides.map(renderLink)}
+              </ul>
+            </div>
+
+            {/* Support */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-4">
                 Support
               </h4>
               <ul className="space-y-3">
                 {footerLinks.support.map(renderLink)}
-              </ul>
-            </div>
-
-            {/* Legal Links */}
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-4">
-                Legal
-              </h4>
-              <ul className="space-y-3">
-                {footerLinks.legal.map(renderLink)}
               </ul>
             </div>
           </div>

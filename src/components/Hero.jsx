@@ -9,6 +9,10 @@ const Hero = () => {
   const [transcript, setTranscript] = useState(null);
   const [error, setError] = useState(null);
   const [showProcessingOverlay, setShowProcessingOverlay] = useState(false);
+  const [languages, setLanguages] = useState(null);
+  const [languagesLoading, setLanguagesLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -19,6 +23,7 @@ const Hero = () => {
     setIsLoading(true);
     setError(null);
     setTranscript(null);
+    setLanguages(null);
     
     // Show processing overlay with ads
     setShowProcessingOverlay(true);
@@ -119,6 +124,105 @@ const Hero = () => {
 
   const handleShortUrl = () => {
     setUrl('https://youtu.be/dQw4w9WgXcQ');
+  };
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const downloadFilename = (format) => {
+    const title = transcript?.video_title;
+    const base = title
+      ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
+      : (transcript?.video_id || 'transcript');
+    return `${base || 'transcript'}.${format}`;
+  };
+
+  const downloadTranscript = (content, format) => {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = downloadFilename(format);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  };
+
+  const loadLanguages = async () => {
+    if (languages || languagesLoading || !transcript) return;
+    setLanguagesLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/languages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_url: `https://youtu.be/${transcript.video_id}` }),
+      });
+      const data = await response.json();
+      setLanguages(data.translation_languages || []);
+    } catch (err) {
+      console.error('Failed to load languages:', err);
+      setLanguages([]);
+    } finally {
+      setLanguagesLoading(false);
+    }
+  };
+
+  const handleTranslate = async (languageCode) => {
+    if (!transcript || isTranslating) return;
+    setIsTranslating(true);
+    setError(null);
+    try {
+      const body = { video_url: `https://youtu.be/${transcript.video_id}` };
+      if (languageCode) body.target_language = languageCode;
+      const response = await fetch(`${BACKEND_URL}/api/transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (data.transcript) {
+        setTranscript((prev) => ({ ...prev, ...data, success: true }));
+      } else {
+        setError(data.error || 'Translation failed. Please try another language.');
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+      setError('Failed to translate. Please try again.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Render "[MM:SS] text" lines with the timestamp linking into the video
+  const renderTranscriptLines = () => {
+    const lines = (transcript?.transcript || '').split('\n');
+    return lines.map((line, i) => {
+      const match = line.match(/^\[(\d+):(\d{2})\]\s?(.*)$/);
+      if (!match) return <div key={i}>{line}</div>;
+      const seconds = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+      return (
+        <div key={i}>
+          <a
+            href={`https://www.youtube.com/watch?v=${transcript.video_id}&t=${seconds}s`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-mono"
+            title="Jump to this moment on YouTube"
+          >
+            [{match[1]}:{match[2]}]
+          </a>{' '}
+          {match[3]}
+        </div>
+      );
+    });
   };
 
   return (
@@ -283,15 +387,15 @@ const Hero = () => {
               </div>
             </div>
 
-            {/* Download Options */}
+            {/* Download & Translate Options */}
             <div className="glass p-4 rounded-xl">
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center items-center">
                 <button
                   onClick={() => copyToClipboard(transcript.transcript)}
                   className="btn-secondary flex items-center space-x-2 text-sm"
                 >
                   <Copy className="w-4 h-4" />
-                  <span>Copy Text</span>
+                  <span>{copied ? 'Copied!' : 'Copy Text'}</span>
                 </button>
                 <button
                   onClick={() => downloadTranscript(transcript.transcript, 'txt')}
@@ -309,16 +413,59 @@ const Hero = () => {
                     <span>Download SRT</span>
                   </button>
                 )}
+                {transcript.vtt && (
+                  <button
+                    onClick={() => downloadTranscript(transcript.vtt, 'vtt')}
+                    className="btn-secondary flex items-center space-x-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download VTT</span>
+                  </button>
+                )}
+                <select
+                  aria-label="Translate transcript"
+                  className="input-modern text-sm py-2 px-3 max-w-[220px] bg-background/80"
+                  disabled={isTranslating}
+                  onFocus={loadLanguages}
+                  onMouseDown={loadLanguages}
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value === '__original__') handleTranslate(null);
+                    else if (e.target.value) handleTranslate(e.target.value);
+                  }}
+                >
+                  <option value="" disabled>
+                    {isTranslating
+                      ? 'Translating…'
+                      : languagesLoading
+                        ? 'Loading languages…'
+                        : '🌐 Translate to…'}
+                  </option>
+                  <option value="__original__">Original language</option>
+                  {(languages || []).map((l) => (
+                    <option key={l.language_code} value={l.language_code}>
+                      {l.language}
+                    </option>
+                  ))}
+                  {languages !== null && languages.length === 0 && (
+                    <option value="" disabled>No translations available for this video</option>
+                  )}
+                </select>
               </div>
             </div>
 
             {/* Transcript Text */}
             <div className="glass p-6 rounded-xl">
-              <h4 className="text-lg font-semibold mb-4">Transcript</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold">Transcript</h4>
+                <span className="text-xs text-muted-foreground">
+                  Tip: click a timestamp to jump to that moment on YouTube
+                </span>
+              </div>
               <div className="bg-background/50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {transcript.transcript}
-                </pre>
+                <div className="text-sm leading-relaxed space-y-1">
+                  {renderTranscriptLines()}
+                </div>
               </div>
             </div>
           </div>
@@ -357,29 +504,6 @@ const Hero = () => {
       />
     </section>
   );
-
-  // Helper functions
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      // You could add a toast notification here
-      console.log('Copied to clipboard');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const downloadTranscript = (content, format) => {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transcript.${format}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 };
 
 export default Hero;

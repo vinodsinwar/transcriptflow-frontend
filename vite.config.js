@@ -5,10 +5,19 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),tailwindcss()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        translate: path.resolve(__dirname, 'translate-youtube-transcript.html'),
+        download: path.resolve(__dirname, 'download-youtube-subtitles.html'),
+      },
     },
   },
 })

@@ -6,21 +6,35 @@ const Header = () => {
 
   const goToInput = () => {
     setIsMenuOpen(false);
-    const input = document.querySelector('#youtube-url');
+    const input = document.querySelector('#youtube-url') || document.querySelector('input[type="url"]');
     if (input) {
       input.scrollIntoView({ behavior: 'smooth', block: 'center' });
       input.focus({ preventScroll: true });
+    } else {
+      window.location.href = '/';
     }
   };
 
   const navItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Use Cases', href: '#use-cases' },
-    { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' }
+    { name: 'Home', href: '/#home' },
+    { name: 'Features', href: '/#features' },
+    { name: 'How It Works', href: '/#how-it-works' },
+    { name: 'Translate', href: '/translate-youtube-transcript' },
+    { name: 'Subtitles', href: '/download-youtube-subtitles' },
+    { name: 'Contact', href: '/#contact' }
   ];
+
+  const handleNavClick = (e, href) => {
+    setIsMenuOpen(false);
+    // Smooth-scroll for section anchors when already on the homepage
+    if (href.startsWith('/#') && window.location.pathname === '/') {
+      const element = document.querySelector(href.slice(1));
+      if (element) {
+        e.preventDefault();
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-strong">
@@ -43,13 +57,7 @@ const Header = () => {
                 key={item.name}
                 href={item.href}
                 className="nav-item"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const element = document.querySelector(item.href);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
+                onClick={(e) => handleNavClick(e, item.href)}
               >
                 {item.name}
               </a>
@@ -86,14 +94,7 @@ const Header = () => {
                   key={item.name}
                   href={item.href}
                   className="nav-item block"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMenuOpen(false);
-                    const element = document.querySelector(item.href);
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
+                  onClick={(e) => handleNavClick(e, item.href)}
                 >
                   {item.name}
                 </a>
