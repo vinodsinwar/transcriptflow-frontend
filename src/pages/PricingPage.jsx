@@ -92,8 +92,11 @@ const PricingPage = () => {
                 ))}
               </ul>
               <a href="/youtube-playlist-transcript" className="btn-primary w-full block text-center">
-                Try it — first 2 videos free
+                Try it on my playlist — free
               </a>
+              <p className="text-center text-xs text-muted-foreground mt-3">
+                First 2 videos free · no signup · no card needed
+              </p>
             </div>
           </div>
         </section>
