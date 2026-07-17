@@ -33,7 +33,7 @@ const Features = () => {
       icon: Timer,
       title: '100',
       subtitle: 'Videos per Playlist',
-      description: 'Pro exports entire playlists as one ZIP of transcripts and subtitle files.',
+      description: 'Pro exports entire playlists — as a ZIP of files or one combined PDF/Word document.',
       color: 'text-purple-400'
     },
     {

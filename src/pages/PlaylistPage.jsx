@@ -6,8 +6,8 @@ import { ListVideo, Archive, GraduationCap, Database } from 'lucide-react';
 const steps = [
   { n: '1', title: 'Paste the playlist URL', text: 'Copy any YouTube playlist link (it contains "list=") and paste it above.' },
   { n: '2', title: 'See every video', text: 'We list the playlist’s videos with titles and durations in seconds.' },
-  { n: '3', title: 'Download transcripts', text: 'Get the first 2 videos free as a ZIP of TXT + SRT files — or unlock the whole playlist with Pro.' },
-  { n: '4', title: 'One tidy ZIP', text: 'Numbered files per video plus a combined text file of the entire playlist.' },
+  { n: '3', title: 'Pick your format', text: 'A ZIP of TXT + SRT files per video, or the whole playlist combined into one PDF or Word document.' },
+  { n: '4', title: 'Download transcripts', text: 'Get the first 2 videos free in any format — or unlock the whole playlist with Pro.' },
 ];
 
 const useCases = [
@@ -36,7 +36,7 @@ const useCases = [
 const faqs = [
   {
     q: 'How many videos can I download for free?',
-    a: 'The first 2 videos of any playlist are free, as a ZIP containing TXT and SRT files. TranscriptFlow Pro unlocks entire playlists (up to 100 videos each).'
+    a: 'The first 2 videos of any playlist are free, in any export format — ZIP of TXT + SRT files, or a combined PDF or Word document. TranscriptFlow Pro unlocks entire playlists (up to 100 videos each).'
   },
   {
     q: 'What does TranscriptFlow Pro cost?',
@@ -47,12 +47,12 @@ const faqs = [
     a: 'No. After purchase you receive a license key by email — paste it once on this page and your browser remembers it. Manage billing, cancel anytime, or retrieve lost keys at the Dodo customer portal using just your purchase email.'
   },
   {
-    q: 'What’s inside the ZIP?',
-    a: 'A numbered TXT and SRT file for every video (named after its title), one combined text file of the whole playlist, and a note listing any videos that had no captions.'
+    q: 'Which export formats are available?',
+    a: 'Two styles: a ZIP with a numbered TXT and SRT file for every video (named after its title) plus a combined text file, or one single PDF or Word document with the whole playlist — a chapter per video. Videos without captions are skipped and listed so you know what was missed.'
   },
   {
     q: 'What about very large playlists?',
-    a: 'We process the first 100 videos of a playlist. Some videos may have no captions at all — those are skipped and listed in the ZIP so you know exactly what was missed.'
+    a: 'We process the first 100 videos of a playlist. Some videos may have no captions at all — those are skipped and listed in your download so you know exactly what was missed.'
   },
 ];
 
@@ -66,8 +66,8 @@ const PlaylistPage = () => {
             YouTube <span className="gradient-text">Playlist Transcript</span> Downloader
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            Download the transcripts of an entire YouTube playlist as one ZIP of text and subtitle
-            files. First 2 videos free — no signup required.
+            Download the transcripts of an entire YouTube playlist — as a ZIP of text and subtitle
+            files, or one combined PDF or Word document. First 2 videos free — no signup required.
           </p>
           <PlaylistTool />
         </section>

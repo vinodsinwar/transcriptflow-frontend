@@ -15,7 +15,7 @@ const proFeatures = [
   'Everything in Free',
   'Full playlist exports — up to 100 videos per playlist',
   '1,000 videos per month (200/day)',
-  'One ZIP per playlist: numbered TXT + SRT files + combined text',
+  'Export as a ZIP of TXT + SRT files, or one combined PDF/Word document',
   'License key by email — still no account needed',
   'Cancel anytime; key management via customer portal',
 ];
