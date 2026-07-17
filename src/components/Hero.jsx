@@ -61,18 +61,7 @@ const Hero = () => {
       
       // Backend returns success data directly, not wrapped in a success field
       if (data.transcript || data.cached) {
-        console.log('Transcript received successfully:', data);
-        setTranscript({
-          success: true,
-          transcript: data.transcript,
-          video_title: data.video_title,
-          duration: data.duration,
-          language: data.language,
-          word_count: data.word_count,
-          srt: data.srt,
-          cached: data.cached,
-          processing_time_ms: data.processing_time_ms
-        });
+        setTranscript({ ...data, success: true });
 
         // Track successful transcript generation
         if (typeof dataLayer !== 'undefined') {
