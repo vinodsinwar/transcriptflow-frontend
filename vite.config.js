@@ -17,6 +17,7 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
         translate: path.resolve(__dirname, 'translate-youtube-transcript.html'),
         download: path.resolve(__dirname, 'download-youtube-subtitles.html'),
+        playlist: path.resolve(__dirname, 'youtube-playlist-transcript.html'),
       },
     },
   },

@@ -3,11 +3,13 @@ import { renderToString } from 'react-dom/server'
 import App from './App.jsx'
 import TranslatePage from './pages/TranslatePage.jsx'
 import DownloadPage from './pages/DownloadPage.jsx'
+import PlaylistPage from './pages/PlaylistPage.jsx'
 
 const pages = {
   'index.html': App,
   'translate-youtube-transcript.html': TranslatePage,
   'download-youtube-subtitles.html': DownloadPage,
+  'youtube-playlist-transcript.html': PlaylistPage,
 }
 
 export function render(pageFile) {

@@ -21,6 +21,7 @@ const Header = () => {
     { name: 'How It Works', href: '/#how-it-works' },
     { name: 'Translate', href: '/translate-youtube-transcript' },
     { name: 'Subtitles', href: '/download-youtube-subtitles' },
+    { name: 'Playlist', href: '/youtube-playlist-transcript' },
     { name: 'Contact', href: '/#contact' }
   ];
 

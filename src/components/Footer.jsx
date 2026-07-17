@@ -14,7 +14,8 @@ const Footer = () => {
     tools: [
       { name: 'Transcript Generator', href: '/' },
       { name: 'Translate Transcript', href: '/translate-youtube-transcript' },
-      { name: 'Download Subtitles', href: '/download-youtube-subtitles' }
+      { name: 'Download Subtitles', href: '/download-youtube-subtitles' },
+      { name: 'Playlist Transcripts', href: '/youtube-playlist-transcript' }
     ],
     guides: [
       { name: 'Get a YouTube Transcript', href: '/blog/how-to-get-youtube-video-transcript' },
