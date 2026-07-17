@@ -284,6 +284,13 @@ const PlaylistTool = () => {
                         Activate
                       </button>
                       {keyError && <p className="w-full text-xs text-red-400">{keyError}</p>}
+                      <p className="w-full text-xs text-muted-foreground">
+                        Lost your key? Retrieve it anytime from the{' '}
+                        <a href="https://customer.dodopayments.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          customer portal
+                        </a>{' '}
+                        (sign in with your purchase email).
+                      </p>
                     </div>
                   )}
                 </div>
@@ -294,7 +301,10 @@ const PlaylistTool = () => {
           {/* Quota display for licensed users */}
           {playlist.licensed && (
             <p className="text-xs text-muted-foreground text-center">
-              Pro license active — quota: 200 videos/day, 1,000 videos/month.
+              Pro license active — quota: 200 videos/day, 1,000 videos/month.{' '}
+              <a href="https://customer.dodopayments.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                Manage subscription & billing
+              </a>
             </p>
           )}
 

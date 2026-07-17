@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     q: 'Do I need an account?',
-    a: 'No. After purchase you receive a license key by email — paste it once on this page and your browser remembers it. No signup, no passwords.'
+    a: 'No. After purchase you receive a license key by email — paste it once on this page and your browser remembers it. Manage billing, cancel anytime, or retrieve lost keys at the Dodo customer portal using just your purchase email.'
   },
   {
     q: 'What’s inside the ZIP?',
