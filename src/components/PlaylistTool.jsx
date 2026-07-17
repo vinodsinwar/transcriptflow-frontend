@@ -2,6 +2,12 @@ import { useState } from 'react';
 import JSZip from 'jszip';
 import { Play, ListVideo, Lock, CheckCircle2, Download, KeyRound, Sparkles } from 'lucide-react';
 
+const EXPORT_FORMATS = [
+  { value: 'zip', label: 'ZIP — TXT + SRT per video' },
+  { value: 'pdf', label: 'Combined PDF (one file)' },
+  { value: 'docx', label: 'Combined Word (one file)' },
+];
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
 // Set these to the live Dodo Payments checkout links to enable purchases.
@@ -34,6 +40,7 @@ const PlaylistTool = () => {
   const [showKeyField, setShowKeyField] = useState(false);
   const [keyError, setKeyError] = useState(null);
   const [exporting, setExporting] = useState(null); // {done, total, currentTitle}
+  const [exportFormat, setExportFormat] = useState('zip');
 
   const fetchPlaylist = async (playlistUrl, key) => {
     setLoading(true);
@@ -82,12 +89,22 @@ const PlaylistTool = () => {
     }
   };
 
-  const exportZip = async () => {
+  const saveBlob = (blob, filename) => {
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  };
+
+  const runExport = async () => {
     if (!playlist || exporting) return;
     const ids = playlist.unlocked_ids;
     const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
-    const zip = new JSZip();
-    const combined = [];
+    const results = []; // {video_id, title, transcript, srt, language, word_count}
     const failures = [];
     setError(null);
 
@@ -112,32 +129,69 @@ const PlaylistTool = () => {
           failures.push(byId[id]?.title || id);
           continue;
         }
-        const base = `${String(i + 1).padStart(2, '0')}-${slugify(data.video_title || byId[id]?.title || id)}`;
-        zip.file(`${base}.txt`, data.transcript);
-        if (data.srt) zip.file(`${base}.srt`, data.srt);
-        combined.push(`=== ${data.video_title || id} (https://youtu.be/${id}) ===\n\n${data.transcript}\n`);
+        results.push({
+          video_id: id,
+          title: data.video_title || byId[id]?.title || id,
+          transcript: data.transcript,
+          srt: data.srt,
+          language: data.language,
+          word_count: data.word_count,
+        });
       } catch {
         failures.push(byId[id]?.title || id);
       }
     }
 
-    if (combined.length > 0) {
+    if (results.length === 0) {
+      if (!error) setError('None of these videos have transcripts available.');
+      setExporting(null);
+      return;
+    }
+
+    if (exportFormat === 'zip') {
+      const zip = new JSZip();
+      results.forEach((r, i) => {
+        const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
+        zip.file(`${base}.txt`, r.transcript);
+        if (r.srt) zip.file(`${base}.srt`, r.srt);
+      });
+      const combined = results.map((r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`);
       zip.file('_all-transcripts-combined.txt', combined.join('\n\n'));
       if (failures.length) {
         zip.file('_skipped-videos.txt', `No transcript available for:\n${failures.join('\n')}`);
       }
       setExporting({ done: ids.length, total: ids.length, currentTitle: 'Packaging ZIP…' });
       const blob = await zip.generateAsync({ type: 'blob' });
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `${slugify(playlist.title)}-transcripts.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
-    } else if (!error) {
-      setError('None of these videos have transcripts available.');
+      saveBlob(blob, `${slugify(playlist.title)}-transcripts.zip`);
+    } else {
+      // Combined PDF / Word: one formatting call, no extra YouTube fetches needed.
+      setExporting({ done: ids.length, total: ids.length, currentTitle: `Building combined ${exportFormat.toUpperCase()}…` });
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/playlist/export`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format: exportFormat,
+            playlist_title: playlist.title,
+            license_key: licenseKey || undefined,
+            videos: results.map((r) => ({
+              video_id: r.video_id,
+              title: r.title,
+              transcript: r.transcript,
+              language: r.language,
+              word_count: r.word_count,
+            })),
+          }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.error || 'Combined export failed. Please try again.');
+        } else {
+          saveBlob(await response.blob(), `${slugify(playlist.title)}-combined.${exportFormat}`);
+        }
+      } catch {
+        setError('Combined export failed. Please try again.');
+      }
     }
     setExporting(null);
   };
@@ -199,18 +253,31 @@ const PlaylistTool = () => {
                     : ` — first ${playlist.free_limit} free, ${lockedCount} locked`}
                 </p>
               </div>
-              <button
-                onClick={exportZip}
-                disabled={!!exporting}
-                className="btn-primary flex items-center space-x-2 disabled:opacity-50"
-              >
-                <Download className="w-4 h-4" />
-                <span>
-                  {playlist.licensed
-                    ? `Download all ${playlist.unlocked_ids.length} (ZIP)`
-                    : `Download ${playlist.unlocked_ids.length} free (ZIP)`}
-                </span>
-              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  aria-label="Export format"
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value)}
+                  disabled={!!exporting}
+                  className="input-modern text-sm py-2 px-3 bg-background/80 disabled:opacity-50"
+                >
+                  {EXPORT_FORMATS.map((f) => (
+                    <option key={f.value} value={f.value}>{f.label}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={runExport}
+                  disabled={!!exporting}
+                  className="btn-primary flex items-center space-x-2 disabled:opacity-50 whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>
+                    {playlist.licensed
+                      ? `Download all ${playlist.unlocked_ids.length}`
+                      : `Download ${playlist.unlocked_ids.length} free`}
+                  </span>
+                </button>
+              </div>
             </div>
             {exporting && (
               <div className="mt-4">
