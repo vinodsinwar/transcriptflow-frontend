@@ -1,7 +1,7 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PlaylistTool from '../components/PlaylistTool';
-import { ListVideo, Archive, GraduationCap, Database } from 'lucide-react';
+import { ListVideo, Archive, GraduationCap, Database, FolderArchive, FileText } from 'lucide-react';
 
 const steps = [
   { n: '1', title: 'Paste the playlist URL', text: 'Copy any YouTube playlist link (it contains "list=") and paste it above.' },
@@ -14,22 +14,22 @@ const useCases = [
   {
     icon: GraduationCap,
     title: 'Courses & lecture series',
-    text: 'Turn a whole course playlist into searchable study notes in one download instead of video by video.'
+    text: 'Turn a whole course playlist into searchable study notes in one download instead of video by video. The combined PDF works like a course reader: one chapter per lecture, in order, with timestamps you can trace back to the exact moment in the video when something needs a second look.'
   },
   {
     icon: Database,
     title: 'Research datasets',
-    text: 'Collect the text of interview series, podcasts, or conference talks for analysis, quoting, and citation.'
+    text: 'Collect the text of interview series, podcasts, or conference talks for analysis, quoting, and citation. Every transcript keeps its video title and source link, so quotes stay attributable — and the numbered TXT files drop straight into qualitative analysis tools or a plain-text corpus.'
   },
   {
     icon: Archive,
     title: 'Channel archives',
-    text: 'Creators can archive the transcripts of their own uploads as a backup or for repurposing into articles.'
+    text: 'Creators can archive the transcripts of their own uploads as a backup or for repurposing into articles. A playlist of past uploads becomes a searchable text library — find every video where you mentioned a topic without scrubbing through hours of footage.'
   },
   {
     icon: ListVideo,
-    title: 'Binge summaries',
-    text: 'Feed a whole playlist’s combined transcript into your favorite AI tool and ask for a series summary.'
+    title: 'AI summaries & chat',
+    text: 'Feed a whole playlist’s combined transcript into ChatGPT, Claude, or Gemini and ask for a series summary, a study guide, or answers grounded in the actual words spoken. One combined file means one upload — no copy-pasting video by video.'
   },
 ];
 
@@ -51,8 +51,28 @@ const faqs = [
     a: 'Two styles: a ZIP with a numbered TXT and SRT file for every video (named after its title) plus a combined text file, or one single PDF or Word document with the whole playlist — a chapter per video. Videos without captions are skipped and listed so you know what was missed.'
   },
   {
+    q: 'Can I get an entire playlist as one PDF?',
+    a: 'Yes — that is exactly what the "Combined PDF" option does. Pick it from the format selector and you get one document with a title page and a chapter per video, each with its title, language, word count, and source link. The Word version works the same way if you prefer an editable file.'
+  },
+  {
+    q: 'Do auto-generated captions work?',
+    a: 'Yes. We fetch whatever transcript YouTube has for each video — manually uploaded captions when they exist, auto-generated ones otherwise. Manual captions are usually cleaner; auto-captions vary with audio quality, accents, and topic jargon.'
+  },
+  {
+    q: 'How long does a big playlist take?',
+    a: 'Roughly 1–3 seconds per video on a first run, so a 50-video playlist typically finishes in a minute or two with a live progress bar. Videos we have served recently come from cache and are near-instant.'
+  },
+  {
     q: 'What about very large playlists?',
     a: 'We process the first 100 videos of a playlist. Some videos may have no captions at all — those are skipped and listed in your download so you know exactly what was missed.'
+  },
+  {
+    q: 'Can I use the transcripts with ChatGPT or Claude?',
+    a: 'Absolutely — it is one of the most popular uses. Upload the combined file and ask for a summary of the whole series, a study guide, or specific answers. Text is far cheaper and faster for AI tools to digest than video or audio.'
+  },
+  {
+    q: 'Is this allowed? Whose content is it?',
+    a: 'Transcripts come from YouTube’s own public caption system for videos that are publicly available. The content belongs to the original creators — quote and reuse it the same way you would cite any source, and check the video’s license for anything beyond personal use.'
   },
 ];
 
@@ -85,6 +105,52 @@ const PlaylistPage = () => {
           </div>
         </section>
 
+        {/* Export styles — the differentiator */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Two Export Styles — Pick What Fits Your Work</h2>
+          <p className="text-muted-foreground text-center max-w-3xl mx-auto mb-10">
+            Most bulk transcript tools hand you a folder of loose files and call it a day.
+            We think the format should match what you're actually doing with the text.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass rounded-xl p-8 border border-border/50">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-bg">
+                  <FolderArchive className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold">ZIP of files — for tools & pipelines</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                One numbered TXT and SRT file per video, named after its title, plus a combined
+                text file of the whole playlist. The right choice when the transcripts are headed
+                somewhere else: a subtitle editor, a data pipeline, a notes app, or an archive folder.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                SRT files keep exact timing for every line, so they drop straight into video editors
+                and subtitle workflows without conversion.
+              </p>
+            </div>
+            <div className="glass-strong rounded-xl p-8 border border-primary/40">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-bg">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold">One combined PDF or Word doc — for reading</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                The whole playlist stitched into a single document: a title page, then a chapter per
+                video with its title, language, word count, and source link. Like a course reader
+                built from the playlist — read it on a tablet, print it, annotate it, or hand the
+                one file to an AI assistant.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Few playlist tools offer this — it's the difference between "here are 60 files"
+                and "here is the book of the course."
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Built for Bulk</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -102,6 +168,32 @@ const PlaylistPage = () => {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* Why us — honest differentiators */}
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">Why TranscriptFlow for Playlists?</h2>
+          <div className="glass rounded-xl p-8 border border-border/50 space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              A YouTube playlist transcript downloader saves you the tedium of opening 40 videos one
+              by one, expanding each description, clicking "show transcript," and copy-pasting into a
+              document. Paste one playlist link instead; we list every video, fetch every available
+              transcript, and package the whole thing into a single download.
+            </p>
+            <p>
+              <span className="text-foreground font-medium">You can try it before paying anything.</span>{' '}
+              The first 2 videos of any playlist are free in every format — no signup, no card, no
+              trial countdown. If the output isn't what you need, you've lost nothing. And Pro itself
+              skips accounts entirely: buy once, get a license key by email, paste it here, done.
+            </p>
+            <p>
+              <span className="text-foreground font-medium">The quota is honest and generous:</span>{' '}
+              1,000 videos a month for $4.99 — where comparable tools sell credit packs that run out
+              mid-playlist. And unlike tools that only produce loose subtitle files, the combined
+              PDF/Word export turns a playlist into one readable document. Transcripts come from
+              YouTube's own captions, so what you download is what the video actually says.
+            </p>
           </div>
         </section>
 

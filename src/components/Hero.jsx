@@ -278,12 +278,11 @@ const Hero = () => {
         {/* Main Heading */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-            Every word of any YouTube video —{' '}
-            <span className="gradient-text">as text, subtitles, or translations</span>
+            Free <span className="gradient-text">YouTube Transcript Generator</span>
           </h1>
           <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Timestamped transcripts in seconds. Export TXT, SRT, VTT, PDF, or Word —
-            even whole playlists.
+            Every word of any YouTube video — as text, subtitles, or translations.
+            Timestamped transcripts in seconds; export TXT, SRT, VTT, PDF, or Word — even whole playlists.
           </p>
         </div>
 

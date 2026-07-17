@@ -62,6 +62,26 @@
           "@type": "Question",
           "name": "Which export formats are available?",
           "acceptedAnswer": {"@type": "Answer", "text": "Two styles: a ZIP with a numbered TXT and SRT file for every video plus a combined text file, or one single PDF or Word document containing the whole playlist with a chapter per video. Videos without captions are skipped and listed."}
+        },
+        {
+          "@type": "Question",
+          "name": "Can I get an entire playlist as one PDF?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes — the Combined PDF option produces one document with a title page and a chapter per video, each with its title, language, word count, and source link. The Word version works the same way as an editable file."}
+        },
+        {
+          "@type": "Question",
+          "name": "Do auto-generated captions work?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes. The tool fetches whatever transcript YouTube has for each video — manually uploaded captions when they exist, auto-generated ones otherwise."}
+        },
+        {
+          "@type": "Question",
+          "name": "How long does a big playlist take?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Roughly 1-3 seconds per video on a first run, so a 50-video playlist typically finishes in a minute or two with a live progress bar. Recently served videos come from cache and are near-instant."}
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use the transcripts with ChatGPT or Claude?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes — upload the combined file and ask for a summary of the whole series, a study guide, or specific answers grounded in the actual words spoken."}
         }
       ]
     }
