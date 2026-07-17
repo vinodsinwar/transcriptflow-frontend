@@ -106,6 +106,7 @@ const PlaylistTool = () => {
     const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
     const results = []; // {video_id, title, transcript, srt, language, word_count}
     const failures = [];
+    let quotaHit = false;
     setError(null);
 
     for (let i = 0; i < ids.length; i++) {
@@ -122,6 +123,7 @@ const PlaylistTool = () => {
         });
         const data = await response.json();
         if (data.error_type === 'quota_exceeded') {
+          quotaHit = true;
           setError('Your Pro export quota is reached — the remaining videos were skipped. Quota resets daily/monthly.');
           break;
         }
@@ -143,7 +145,7 @@ const PlaylistTool = () => {
     }
 
     if (results.length === 0) {
-      if (!error) setError('None of these videos have transcripts available.');
+      if (!quotaHit) setError('None of these videos have transcripts available.');
       setExporting(null);
       return;
     }
@@ -307,7 +309,7 @@ const PlaylistTool = () => {
                     Unlock all {playlist.video_count} videos with TranscriptFlow Pro
                   </h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Export up to 1,000 videos per month as ZIPs of TXT + SRT files.
+                    Export up to 1,000 videos per month — as a ZIP of TXT + SRT files, or one combined PDF/Word document.
                     <span className="text-foreground font-medium"> $4.99/month</span> or
                     <span className="text-foreground font-medium"> $29/year</span>.
                   </p>
