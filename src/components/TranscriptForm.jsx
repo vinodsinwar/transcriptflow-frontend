@@ -278,15 +278,24 @@ const TranscriptForm = ({ mode = 'download' }) => {
                 </button>
               )}
               <button onClick={() => exportFile('docx')} disabled={!!exporting} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
-                <Download className="w-4 h-4" />
+                {exporting === 'docx'
+                  ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                  : <Download className="w-4 h-4" />}
                 <span>{exporting === 'docx' ? 'Preparing…' : 'Word'}</span>
               </button>
               <button onClick={() => exportFile('pdf')} disabled={!!exporting} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
-                <Download className="w-4 h-4" />
+                {exporting === 'pdf'
+                  ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                  : <Download className="w-4 h-4" />}
                 <span>{exporting === 'pdf' ? 'Preparing…' : 'PDF'}</span>
               </button>
               {mode !== 'translate' && translateSelect}
             </div>
+            {exporting && (
+              <p className="text-center text-xs text-muted-foreground mt-3" role="status">
+                Preparing your {exporting === 'docx' ? 'Word' : exporting.toUpperCase()} file — this usually takes a few seconds…
+              </p>
+            )}
           </div>
 
           <div className="glass p-6 rounded-xl">

@@ -454,7 +454,9 @@ const Hero = () => {
                   disabled={!!exporting}
                   className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
+                  {exporting === 'docx'
+                    ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    : <Download className="w-4 h-4" />}
                   <span>{exporting === 'docx' ? 'Preparing…' : 'Download Word'}</span>
                 </button>
                 <button
@@ -462,7 +464,9 @@ const Hero = () => {
                   disabled={!!exporting}
                   className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
+                  {exporting === 'pdf'
+                    ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    : <Download className="w-4 h-4" />}
                   <span>{exporting === 'pdf' ? 'Preparing…' : 'Download PDF'}</span>
                 </button>
                 <select
@@ -495,6 +499,11 @@ const Hero = () => {
                   )}
                 </select>
               </div>
+              {exporting && (
+                <p className="text-center text-xs text-muted-foreground mt-3" role="status">
+                  Preparing your {exporting === 'docx' ? 'Word' : exporting.toUpperCase()} file — this usually takes a few seconds…
+                </p>
+              )}
             </div>
 
             {/* Transcript Text */}
