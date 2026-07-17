@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Play, Youtube, Download, Copy, FileText } from 'lucide-react';
+import ProcessingOverlay from './ProcessingOverlay';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -291,11 +292,6 @@ const TranscriptForm = ({ mode = 'download' }) => {
               </button>
               {mode !== 'translate' && translateSelect}
             </div>
-            {exporting && (
-              <p className="text-center text-xs text-muted-foreground mt-3" role="status">
-                Preparing your {exporting === 'docx' ? 'Word' : exporting.toUpperCase()} file — this usually takes a few seconds…
-              </p>
-            )}
           </div>
 
           <div className="glass p-6 rounded-xl">
@@ -311,6 +307,12 @@ const TranscriptForm = ({ mode = 'download' }) => {
           </div>
         </div>
       )}
+
+      <ProcessingOverlay
+        isVisible={!!exporting}
+        mode={exporting || 'transcript'}
+        videoUrl={transcript ? `https://youtu.be/${transcript.video_id}` : ''}
+      />
     </div>
   );
 };

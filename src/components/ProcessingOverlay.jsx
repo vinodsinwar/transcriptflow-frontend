@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Youtube, Clock } from 'lucide-react';
 
-const ProcessingOverlay = ({ isVisible, videoUrl }) => {
+const ProcessingOverlay = ({ isVisible, videoUrl, mode = 'transcript' }) => {
   const [processingTime, setProcessingTime] = useState(0);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const ProcessingOverlay = ({ isVisible, videoUrl }) => {
             <Youtube className="w-6 h-6" />
             <h3 className="text-xl font-bold">TranscriptFlow</h3>
           </div>
-          <p className="text-blue-100">Generating your transcript...</p>
+          <p className="text-blue-100">{mode === 'transcript' ? 'Generating your transcript...' : `Preparing your ${mode.toUpperCase()} file...`}</p>
         </div>
 
         {/* Processing Content */}
@@ -51,7 +51,7 @@ const ProcessingOverlay = ({ isVisible, videoUrl }) => {
           </div>
 
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Processing Video
+            {mode === 'transcript' ? 'Processing Video' : `Creating ${mode === 'docx' ? 'Word document' : 'PDF document'}`}
           </h4>
 
           <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -60,9 +60,19 @@ const ProcessingOverlay = ({ isVisible, videoUrl }) => {
           </div>
 
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            <p>• Fetching available captions</p>
-            <p>• Building timestamped transcript</p>
-            <p>• Preparing TXT and SRT downloads</p>
+            {mode === 'transcript' ? (
+              <>
+                <p>• Fetching available captions</p>
+                <p>• Building timestamped transcript</p>
+                <p>• Preparing TXT and SRT downloads</p>
+              </>
+            ) : (
+              <>
+                <p>• Formatting the transcript</p>
+                <p>• Laying out pages and timestamps</p>
+                <p>• Your download starts automatically</p>
+              </>
+            )}
           </div>
         </div>
 

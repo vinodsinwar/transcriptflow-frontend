@@ -499,11 +499,6 @@ const Hero = () => {
                   )}
                 </select>
               </div>
-              {exporting && (
-                <p className="text-center text-xs text-muted-foreground mt-3" role="status">
-                  Preparing your {exporting === 'docx' ? 'Word' : exporting.toUpperCase()} file — this usually takes a few seconds…
-                </p>
-              )}
             </div>
 
             {/* Transcript Text */}
@@ -550,7 +545,8 @@ const Hero = () => {
 
       {/* Processing Overlay with AdSense Ads */}
       <ProcessingOverlay 
-        isVisible={showProcessingOverlay}
+        isVisible={showProcessingOverlay || !!exporting}
+        mode={exporting || 'transcript'}
         onClose={() => setShowProcessingOverlay(false)}
         videoUrl={url}
       />
