@@ -1,4 +1,4 @@
-import{c as n,j as e,H as l,D as o,a as i,b as a,r as d}from"./App-CO0H9V9F.js";import{T as c}from"./TranscriptForm-DiCwENLi.js";import{G as x,L as h}from"./languages-J06OnM6J.js";/**
+import{c as n,j as e,H as l,D as o,a as i,b as a,r as d}from"./App-CO0H9V9F.js";import{T as c}from"./TranscriptForm-D_wTnc4q.js";import{G as x,L as h}from"./languages-J06OnM6J.js";/**
  * @license lucide-react v0.510.0 - ISC
  *
  * This source code is licensed under the ISC license.

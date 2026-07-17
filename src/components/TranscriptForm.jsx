@@ -17,6 +17,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
   const [languagesLoading, setLanguagesLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(null);
+  const [exporting, setExporting] = useState(null);
 
   const requestTranscript = async (videoUrl, targetLanguage) => {
     const body = { video_url: videoUrl };
@@ -36,6 +38,7 @@ const TranscriptForm = ({ mode = 'download' }) => {
     setError(null);
     setTranscript(null);
     setLanguages(null);
+    setCurrentLanguage(null);
     try {
       const data = await requestTranscript(url.trim());
       if (data.transcript) {
@@ -76,6 +79,7 @@ const TranscriptForm = ({ mode = 'download' }) => {
       const data = await requestTranscript(`https://youtu.be/${transcript.video_id}`, languageCode);
       if (data.transcript) {
         setTranscript((prev) => ({ ...prev, ...data, success: true }));
+        setCurrentLanguage(languageCode);
       } else {
         setError(data.error || 'Translation failed. Please try another language.');
       }
@@ -96,20 +100,51 @@ const TranscriptForm = ({ mode = 'download' }) => {
     }
   };
 
-  const downloadTranscript = (content, format) => {
+  const downloadName = (format) => {
     const title = transcript?.video_title;
     const base = title
       ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
       : (transcript?.video_id || 'transcript');
-    const blob = new Blob([content], { type: 'text/plain' });
+    return `${base || 'transcript'}.${format}`;
+  };
+
+  const saveBlob = (blob, filename) => {
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = `${base || 'transcript'}.${format}`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
+  };
+
+  const downloadTranscript = (content, format) => {
+    saveBlob(new Blob([content], { type: 'text/plain' }), downloadName(format));
+  };
+
+  const exportFile = async (format) => {
+    if (!transcript || exporting) return;
+    setExporting(format);
+    try {
+      const body = { video_url: `https://youtu.be/${transcript.video_id}`, format };
+      if (currentLanguage) body.target_language = currentLanguage;
+      const response = await fetch(`${BACKEND_URL}/api/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Export failed. Please try again.');
+        return;
+      }
+      saveBlob(await response.blob(), downloadName(format));
+    } catch {
+      setError('Export failed. Please try again.');
+    } finally {
+      setExporting(null);
+    }
   };
 
   const renderTranscriptLines = () => {
@@ -242,6 +277,14 @@ const TranscriptForm = ({ mode = 'download' }) => {
                   <span>VTT</span>
                 </button>
               )}
+              <button onClick={() => exportFile('docx')} disabled={!!exporting} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
+                <Download className="w-4 h-4" />
+                <span>{exporting === 'docx' ? 'Preparing…' : 'Word'}</span>
+              </button>
+              <button onClick={() => exportFile('pdf')} disabled={!!exporting} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
+                <Download className="w-4 h-4" />
+                <span>{exporting === 'pdf' ? 'Preparing…' : 'PDF'}</span>
+              </button>
               {mode !== 'translate' && translateSelect}
             </div>
           </div>

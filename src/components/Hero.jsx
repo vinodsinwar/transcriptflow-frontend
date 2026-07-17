@@ -13,6 +13,8 @@ const Hero = () => {
   const [languagesLoading, setLanguagesLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(null);
+  const [exporting, setExporting] = useState(null);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -24,6 +26,7 @@ const Hero = () => {
     setError(null);
     setTranscript(null);
     setLanguages(null);
+    setCurrentLanguage(null);
     
     // Show processing overlay with ads
     setShowProcessingOverlay(true);
@@ -190,6 +193,7 @@ const Hero = () => {
       const data = await response.json();
       if (data.transcript) {
         setTranscript((prev) => ({ ...prev, ...data, success: true }));
+        setCurrentLanguage(languageCode);
       } else {
         setError(data.error || 'Translation failed. Please try another language.');
       }
@@ -198,6 +202,40 @@ const Hero = () => {
       setError('Failed to translate. Please try again.');
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  // Server-generated file downloads (Word / PDF)
+  const exportFile = async (format) => {
+    if (!transcript || exporting) return;
+    setExporting(format);
+    try {
+      const body = { video_url: `https://youtu.be/${transcript.video_id}`, format };
+      if (currentLanguage) body.target_language = currentLanguage;
+      const response = await fetch(`${BACKEND_URL}/api/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Export failed. Please try again.');
+        return;
+      }
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = downloadFilename(format);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Export error:', err);
+      setError('Export failed. Please try again.');
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -422,6 +460,22 @@ const Hero = () => {
                     <span>Download VTT</span>
                   </button>
                 )}
+                <button
+                  onClick={() => exportFile('docx')}
+                  disabled={!!exporting}
+                  className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting === 'docx' ? 'Preparing…' : 'Download Word'}</span>
+                </button>
+                <button
+                  onClick={() => exportFile('pdf')}
+                  disabled={!!exporting}
+                  className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting === 'pdf' ? 'Preparing…' : 'Download PDF'}</span>
+                </button>
                 <select
                   aria-label="Translate transcript"
                   className="input-modern text-sm py-2 px-3 max-w-[220px] bg-background/80"

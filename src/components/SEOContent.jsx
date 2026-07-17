@@ -19,7 +19,7 @@ const benefits = [
   {
     icon: FileText,
     title: 'Multiple Formats',
-    description: 'Copy the timestamped text or download as TXT and SRT subtitle files ready for editing tools and video players.'
+    description: 'Copy the timestamped text or download as TXT, SRT, VTT, PDF, or Word files — ready for editors, players, and documents.'
   }
 ];
 

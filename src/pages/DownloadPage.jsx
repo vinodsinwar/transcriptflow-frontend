@@ -19,6 +19,16 @@ const formats = [
     name: 'VTT — WebVTT subtitles',
     text: 'The web-native subtitle format used by HTML5 video players. Ideal for embedding captions on websites and web apps.'
   },
+  {
+    icon: FileText,
+    name: 'Word — .docx document',
+    text: 'A formatted Word document with the video title and bold timestamps — ready for editing, commenting, and sharing with your team.'
+  },
+  {
+    icon: FileDown,
+    name: 'PDF — print-ready file',
+    text: 'A clean, paginated PDF of the full transcript. Great for archiving, printing, citations, and attaching to reports — supports translated transcripts too.'
+  },
 ];
 
 const faqs = [
@@ -39,6 +49,10 @@ const faqs = [
     a: 'Yes. If a video only has YouTube’s automatic captions, we use those — so nearly every public video with speech can be exported.'
   },
   {
+    q: 'Can I download a YouTube transcript as a PDF or Word document?',
+    a: 'Yes. After fetching the transcript, use the Word or PDF buttons. Word gives you an editable .docx with bold timestamps; PDF gives you a clean, paginated document — both named after the video and both work for translated transcripts.'
+  },
+  {
     q: 'Is there a limit on video length or number of downloads?',
     a: 'No hard limits for normal use. Very long videos simply take a few extra seconds to process.'
   },
@@ -51,18 +65,18 @@ const DownloadPage = () => {
       <main className="pt-24 pb-20">
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-            Download YouTube <span className="gradient-text">Subtitles</span> — SRT, VTT & TXT
+            Download YouTube <span className="gradient-text">Subtitles & Transcripts</span> — SRT, VTT, TXT, PDF & Word
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            Export the captions of any YouTube video as SRT or VTT subtitle files, or as plain text —
-            free, instant, and no signup required.
+            Export the captions of any YouTube video as SRT or VTT subtitle files, plain text,
+            or polished PDF and Word documents — free, instant, and no signup required.
           </p>
           <TranscriptForm mode="download" />
         </section>
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Three Formats, Every Use Case</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Five Formats, Every Use Case</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {formats.map((f) => {
               const Icon = f.icon;
               return (
