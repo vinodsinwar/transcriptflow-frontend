@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Play, Youtube, Clock, Shield, Users, Download, Copy, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Youtube, Globe, ListVideo, Download, Copy, FileText, ClipboardPaste, RotateCcw, History } from 'lucide-react';
 import ProcessingOverlay from './ProcessingOverlay';
 import ResultBanner from './ResultBanner';
+import TranscriptViewer from './TranscriptViewer';
 
 const Hero = () => {
   const [url, setUrl] = useState('');
@@ -15,18 +16,48 @@ const Hero = () => {
   const [copied, setCopied] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(null);
   const [exporting, setExporting] = useState(null);
+  const [statsCount, setStatsCount] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [lastUrl, setLastUrl] = useState('');
+  const resultRef = useRef(null);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/stats`)
+      .then((r) => r.json())
+      .then((d) => { if (d.transcripts_total > 0) setStatsCount(d.transcripts_total); })
+      .catch(() => {});
+    try {
+      setHistory(JSON.parse(localStorage.getItem('tf_history') || '[]'));
+    } catch { /* private mode */ }
+  }, []);
+
+  const rememberTranscript = (data) => {
+    try {
+      const entry = {
+        video_id: data.video_id,
+        title: data.video_title || data.video_id,
+        language: data.language,
+        ts: Date.now(),
+      };
+      const next = [entry, ...history.filter((h) => h.video_id !== entry.video_id)].slice(0, 10);
+      setHistory(next);
+      localStorage.setItem('tf_history', JSON.stringify(next));
+    } catch { /* private mode */ }
+  };
+
+  const handleSubmit = async (e, overrideUrl) => {
     e.preventDefault();
-    if (!url.trim()) return;
+    const targetUrl = (overrideUrl || url).trim();
+    if (!targetUrl) return;
     
     setIsLoading(true);
     setError(null);
     setTranscript(null);
     setLanguages(null);
     setCurrentLanguage(null);
+    setLastUrl(targetUrl);
     
     // Show processing overlay with ads
     setShowProcessingOverlay(true);
@@ -35,21 +66,21 @@ const Hero = () => {
     if (typeof dataLayer !== 'undefined') {
       dataLayer.push({
         event: 'transcript_generation_started',
-        video_url: url.trim(),
+        video_url: targetUrl,
         timestamp: new Date().toISOString(),
         user_action: 'generate_transcript_clicked'
       });
     }
     
     try {
-      console.log('Generating transcript for:', url);
+      
       
       const response = await fetch(`${BACKEND_URL}/api/transcript`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ video_url: url.trim() }),
+        body: JSON.stringify({ video_url: targetUrl }),
       });
 
       if (!response.ok) {
@@ -62,12 +93,14 @@ const Hero = () => {
       // Backend returns success data directly, not wrapped in a success field
       if (data.transcript || data.cached) {
         setTranscript({ ...data, success: true });
+        rememberTranscript(data);
+        setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 1200);
 
         // Track successful transcript generation
         if (typeof dataLayer !== 'undefined') {
           dataLayer.push({
             event: 'transcript_generated',
-            video_url: url.trim(),
+            video_url: targetUrl,
             video_title: data.video_title,
             language: data.language,
             word_count: data.word_count,
@@ -84,7 +117,7 @@ const Hero = () => {
         if (typeof dataLayer !== 'undefined') {
           dataLayer.push({
             event: 'transcript_generation_error',
-            video_url: url.trim(),
+            video_url: targetUrl,
             error_message: data.error || 'Failed to generate transcript',
             success: false
           });
@@ -98,7 +131,7 @@ const Hero = () => {
       if (typeof dataLayer !== 'undefined') {
         dataLayer.push({
           event: 'transcript_generation_error',
-          video_url: url.trim(),
+          video_url: targetUrl,
           error_message: 'Failed to connect to server',
           error_type: 'connection_error',
           success: false
@@ -228,50 +261,29 @@ const Hero = () => {
     }
   };
 
-  // Render "[MM:SS] text" lines with the timestamp linking into the video
-  const renderTranscriptLines = () => {
-    const lines = (transcript?.transcript || '').split('\n');
-    return lines.map((line, i) => {
-      const match = line.match(/^\[(\d+):(\d{2})\]\s?(.*)$/);
-      if (!match) return <div key={i}>{line}</div>;
-      const seconds = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-      return (
-        <div key={i}>
-          <a
-            href={`https://www.youtube.com/watch?v=${transcript.video_id}&t=${seconds}s`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline font-mono"
-            title="Jump to this moment on YouTube"
-          >
-            [{match[1]}:{match[2]}]
-          </a>{' '}
-          {match[3]}
-        </div>
-      );
-    });
-  };
-
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center pt-16 sm:pt-20">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full gradient-bg opacity-20 blur-3xl float"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full gradient-bg opacity-15 blur-3xl float" style={{ animationDelay: '-3s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full gradient-bg opacity-10 blur-3xl"></div>
+        <div className="transcript-motif" aria-hidden="true">
+          {[92, 68, 84, 52, 76, 60, 88, 44].map((w, i) => (
+            <div key={i} className="transcript-motif-line" style={{ width: `${w}%`, animationDelay: `${i * 0.35}s` }}></div>
+          ))}
+        </div>
       </div>
 
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
         {/* Main Heading */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-            Transform{' '}
-            <span className="gradient-text">YouTube Videos</span>
-            {' '}into{' '}
-            <span className="gradient-text">Text</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+            Every word of any YouTube video —{' '}
+            <span className="gradient-text">as text, subtitles, or translations</span>
           </h1>
           <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Generate accurate transcripts from any YouTube video instantly.
+            Timestamped transcripts in seconds. Export TXT, SRT, VTT, PDF, or Word —
+            even whole playlists.
           </p>
         </div>
 
@@ -281,20 +293,26 @@ const Hero = () => {
             Free • No Signup Required • 125+ Languages • Professional Quality
           </p>
           
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8">
+          {/* Honest capability chips */}
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
             <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">2.3s Average</span>
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">TXT · SRT · VTT · PDF · Word</span>
             </div>
             <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span className="text-sm font-medium">100% Secure</span>
+              <Globe className="w-4 h-4 text-green-400" />
+              <span className="text-sm font-medium">125+ languages</span>
             </div>
             <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <Users className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium">50,000+ Users</span>
+              <ListVideo className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium">Whole playlists (Pro)</span>
             </div>
+            {statsCount && (
+              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
+                <Play className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">{statsCount.toLocaleString()} transcripts generated</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -317,9 +335,22 @@ const Hero = () => {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="Paste any YouTube URL here..."
-                  className="input-modern w-full pl-10 sm:pl-12 lg:pl-40 pr-3 sm:pr-4 py-3 sm:py-4 text-base sm:text-lg"
+                  className="input-modern w-full pl-10 sm:pl-12 lg:pl-40 pr-20 py-3 sm:py-4 text-base sm:text-lg"
                   required
                 />
+                {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try { setUrl((await navigator.clipboard.readText()).trim()); } catch { /* denied */ }
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 btn-secondary text-xs py-1.5 px-3 flex items-center space-x-1"
+                    title="Paste from clipboard"
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Paste</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -359,6 +390,35 @@ const Hero = () => {
               Short URL
             </button>
           </div>
+
+          {history.length > 0 && (
+            <div className="mt-5 text-left max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-muted-foreground flex items-center space-x-1">
+                  <History className="w-3.5 h-3.5" />
+                  <span>Recent — stored only in your browser</span>
+                </p>
+                <button
+                  onClick={() => { setHistory([]); try { localStorage.removeItem('tf_history'); } catch { /* ok */ } }}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {history.slice(0, 6).map((h) => (
+                  <button
+                    key={h.video_id}
+                    onClick={() => setUrl(`https://youtu.be/${h.video_id}`)}
+                    className="glass px-3 py-1.5 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[220px] truncate"
+                    title={h.title}
+                  >
+                    {h.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Feature Preview */}
@@ -385,12 +445,21 @@ const Hero = () => {
               <span className="font-medium">Error:</span>
               <span>{error}</span>
             </div>
+            {lastUrl && (
+              <button
+                onClick={() => { setUrl(lastUrl); handleSubmit({ preventDefault: () => {} }, lastUrl); }}
+                className="btn-secondary text-sm mt-3 flex items-center space-x-2 mx-auto"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Try again</span>
+              </button>
+            )}
           </div>
         )}
 
         {/* Transcript Display */}
         {transcript && transcript.success && (
-          <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
+          <div ref={resultRef} className="w-full max-w-4xl mx-auto mt-8 space-y-6 scroll-mt-24">
             {/* Result Banner Ad */}
             <ResultBanner 
               isVisible={true}
@@ -501,20 +570,16 @@ const Hero = () => {
               </div>
             </div>
 
-            {/* Transcript Text */}
-            <div className="glass p-6 rounded-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold">Transcript</h4>
-                <span className="text-xs text-muted-foreground">
-                  Tip: click a timestamp to jump to that moment on YouTube
-                </span>
-              </div>
-              <div className="bg-background/50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <div className="text-sm leading-relaxed space-y-1">
-                  {renderTranscriptLines()}
-                </div>
-              </div>
-            </div>
+            {/* Contextual Pro hint */}
+            <p className="text-center text-sm text-muted-foreground">
+              Working through a whole playlist?{' '}
+              <a href="/youtube-playlist-transcript" className="text-primary hover:underline">
+                Pro exports up to 100 videos at once →
+              </a>
+            </p>
+
+            {/* Transcript reading view */}
+            <TranscriptViewer transcript={transcript.transcript} videoId={transcript.video_id} />
           </div>
         )}
         {/* Footer with Legal Links */}

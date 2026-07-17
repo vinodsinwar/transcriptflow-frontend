@@ -234,3 +234,31 @@
     backdrop-filter: blur(64px);
   }
 }
+
+
+/* Signature visual: shimmering transcript lines behind the hero */
+.transcript-motif {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.transcript-motif-line {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.16), rgba(139, 92, 246, 0.10));
+  animation: motif-pulse 4.5s ease-in-out infinite;
+}
+@keyframes motif-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transcript-motif-line { animation: none; }
+}

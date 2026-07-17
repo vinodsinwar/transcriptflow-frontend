@@ -153,8 +153,8 @@ const UseCases = () => {
                 <div className="text-sm text-muted-foreground">Languages Supported</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold gradient-text mb-2">99.8%</div>
-                <div className="text-sm text-muted-foreground">Accuracy Rate</div>
+                <div className="text-3xl font-bold gradient-text mb-2">5</div>
+                <div className="text-sm text-muted-foreground">Export formats</div>
               </div>
             </div>
           </div>

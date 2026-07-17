@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Menu, X, Zap } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import Logo from './Logo';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,11 +18,10 @@ const Header = () => {
 
   const navItems = [
     { name: 'Home', href: '/#home' },
-    { name: 'Features', href: '/#features' },
-    { name: 'How It Works', href: '/#how-it-works' },
     { name: 'Translate', href: '/translate-youtube-transcript' },
     { name: 'Subtitles', href: '/download-youtube-subtitles' },
     { name: 'Playlist', href: '/youtube-playlist-transcript' },
+    { name: 'Pricing', href: '/pricing' },
     { name: 'Contact', href: '/#contact' }
   ];
 
@@ -43,9 +43,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg gradient-bg">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+            <Logo className="w-8 h-8" />
             <span className="text-xl font-bold gradient-text">
               TranscriptFlow
             </span>

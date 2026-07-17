@@ -24,16 +24,16 @@ const Features = () => {
     },
     {
       icon: Target,
-      title: '99.8%',
-      subtitle: 'Accuracy',
-      description: 'Industry-leading accuracy sourced from each video\'s official captions.',
+      title: '5',
+      subtitle: 'Export Formats',
+      description: 'TXT, SRT, VTT, PDF and Word — copy or download, named after the video.',
       color: 'text-green-400'
     },
     {
       icon: Timer,
-      title: '<3s',
-      subtitle: 'Processing',
-      description: 'Lightning-fast processing with optimized algorithms and intelligent caching.',
+      title: '100',
+      subtitle: 'Videos per Playlist',
+      description: 'Pro exports entire playlists as one ZIP of transcripts and subtitle files.',
       color: 'text-purple-400'
     },
     {
@@ -50,7 +50,7 @@ const Features = () => {
       icon: Zap,
       title: 'Lightning Fast',
       description: 'Generate transcripts in seconds with our optimized processing pipeline and intelligent caching system.',
-      highlight: 'Sub-second processing'
+      highlight: 'Cached repeats are instant'
     },
     {
       icon: Globe,
@@ -61,8 +61,8 @@ const Features = () => {
     {
       icon: Download,
       title: 'Multiple Formats',
-      description: 'Copy timestamped text or download transcripts as TXT and SRT files.',
-      highlight: 'TXT & SRT'
+      description: 'Copy timestamped text or download as TXT, SRT, VTT, PDF, or Word.',
+      highlight: '5 formats'
     },
     {
       icon: Lock,
@@ -73,8 +73,8 @@ const Features = () => {
     {
       icon: Clock,
       title: 'Timestamp Accuracy',
-      description: 'Precise timestamps for easy navigation and synchronization with video content.',
-      highlight: 'Frame-perfect timing'
+      description: 'Every line is timestamped and clickable — jump straight to that moment in the video.',
+      highlight: 'Clickable timestamps'
     },
     {
       icon: Brain,
@@ -96,12 +96,12 @@ const Features = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            Powerful Features for{' '}
-            <span className="gradient-text">Every Need</span>
+            Everything the Transcript{' '}
+            <span className="gradient-text">Actually Needs</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our advanced transcript generation platform offers everything you need to convert 
-            YouTube videos into accurate, formatted text quickly and efficiently.
+            No filler features — just the things people genuinely use transcripts for,
+            done properly.
           </p>
         </div>
 
@@ -168,7 +168,7 @@ const Features = () => {
               Ready to Get Started?
             </h3>
             <p className="text-muted-foreground mb-6">
-              Join thousands of users who trust TranscriptFlow for their video transcription needs.
+              Paste a link, get the words. It really is that simple.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button

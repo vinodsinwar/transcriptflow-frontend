@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Play, Youtube, Download, Copy, FileText } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw } from 'lucide-react';
+import TranscriptViewer from './TranscriptViewer';
 import ProcessingOverlay from './ProcessingOverlay';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
@@ -20,6 +21,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
   const [copied, setCopied] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(null);
   const [exporting, setExporting] = useState(null);
+  const [lastUrl, setLastUrl] = useState('');
+  const resultRef = useRef(null);
 
   const requestTranscript = async (videoUrl, targetLanguage) => {
     const body = { video_url: videoUrl };
@@ -32,18 +35,21 @@ const TranscriptForm = ({ mode = 'download' }) => {
     return response.json();
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, overrideUrl) => {
     e.preventDefault();
-    if (!url.trim()) return;
+    const targetUrl = (overrideUrl || url).trim();
+    if (!targetUrl) return;
     setIsLoading(true);
     setError(null);
     setTranscript(null);
     setLanguages(null);
     setCurrentLanguage(null);
+    setLastUrl(targetUrl);
     try {
-      const data = await requestTranscript(url.trim());
+      const data = await requestTranscript(targetUrl);
       if (data.transcript) {
         setTranscript({ ...data, success: true });
+        setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 1200);
       } else {
         setError(data.error || 'Failed to generate transcript');
       }
@@ -148,29 +154,6 @@ const TranscriptForm = ({ mode = 'download' }) => {
     }
   };
 
-  const renderTranscriptLines = () => {
-    const lines = (transcript?.transcript || '').split('\n');
-    return lines.map((line, i) => {
-      const match = line.match(/^\[(\d+):(\d{2})\]\s?(.*)$/);
-      if (!match) return <div key={i}>{line}</div>;
-      const seconds = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-      return (
-        <div key={i}>
-          <a
-            href={`https://www.youtube.com/watch?v=${transcript.video_id}&t=${seconds}s`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline font-mono"
-            title="Jump to this moment on YouTube"
-          >
-            [{match[1]}:{match[2]}]
-          </a>{' '}
-          {match[3]}
-        </div>
-      );
-    });
-  };
-
   const translateSelect = (
     <select
       aria-label="Translate transcript"
@@ -211,9 +194,22 @@ const TranscriptForm = ({ mode = 'download' }) => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste any YouTube URL here..."
-            className="input-modern w-full pl-12 pr-4 py-4 text-lg"
+            className="input-modern w-full pl-12 pr-20 py-4 text-lg"
             required
           />
+          {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (
+            <button
+              type="button"
+              onClick={async () => {
+                try { setUrl((await navigator.clipboard.readText()).trim()); } catch { /* denied */ }
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 btn-secondary text-xs py-1.5 px-3 flex items-center space-x-1"
+              title="Paste from clipboard"
+            >
+              <ClipboardPaste className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Paste</span>
+            </button>
+          )}
         </div>
         <button
           type="submit"
@@ -237,11 +233,20 @@ const TranscriptForm = ({ mode = 'download' }) => {
       {error && (
         <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
           {error}
+          {lastUrl && (
+            <button
+              onClick={() => { setUrl(lastUrl); handleSubmit({ preventDefault: () => {} }, lastUrl); }}
+              className="btn-secondary text-sm mt-3 flex items-center space-x-2 mx-auto"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Try again</span>
+            </button>
+          )}
         </div>
       )}
 
       {transcript && transcript.success && (
-        <div className="mt-8 space-y-6 text-left">
+        <div ref={resultRef} className="mt-8 space-y-6 text-left scroll-mt-24">
           <div className="glass p-6 rounded-xl">
             <div className="flex items-start space-x-4">
               <FileText className="w-8 h-8 text-primary flex-shrink-0" />
@@ -294,17 +299,7 @@ const TranscriptForm = ({ mode = 'download' }) => {
             </div>
           </div>
 
-          <div className="glass p-6 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold">Transcript</h4>
-              <span className="text-xs text-muted-foreground">Click a timestamp to jump to that moment</span>
-            </div>
-            <div className="bg-background/50 p-4 rounded-lg max-h-96 overflow-y-auto">
-              <div className="text-sm leading-relaxed space-y-1">
-                {renderTranscriptLines()}
-              </div>
-            </div>
-          </div>
+          <TranscriptViewer transcript={transcript.transcript} videoId={transcript.video_id} />
         </div>
       )}
 

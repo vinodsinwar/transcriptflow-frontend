@@ -1,4 +1,5 @@
-import { Zap, Mail, Heart } from 'lucide-react';
+import { Mail, Heart } from 'lucide-react';
+import Logo from './Logo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -15,7 +16,8 @@ const Footer = () => {
       { name: 'Transcript Generator', href: '/' },
       { name: 'Translate Transcript', href: '/translate-youtube-transcript' },
       { name: 'Download Subtitles', href: '/download-youtube-subtitles' },
-      { name: 'Playlist Transcripts', href: '/youtube-playlist-transcript' }
+      { name: 'Playlist Transcripts', href: '/youtube-playlist-transcript' },
+      { name: 'Pricing', href: '/pricing' }
     ],
     guides: [
       { name: 'Get a YouTube Transcript', href: '/blog/how-to-get-youtube-video-transcript' },
@@ -82,9 +84,7 @@ const Footer = () => {
             {/* Brand Section */}
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg gradient-bg">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
+                <Logo className="w-8 h-8" />
                 <span className="text-xl font-bold gradient-text">
                   TranscriptFlow
                 </span>
