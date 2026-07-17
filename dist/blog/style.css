@@ -36,3 +36,7 @@ th { background: rgba(30,41,59,.6); color: #f1f5f9; }
 code { background: rgba(30,41,59,.8); border-radius: 5px; padding: 2px 6px; font-size: 14.5px; }
 footer.site { border-top: 1px solid rgba(148,163,184,.15); margin-top: 56px; padding-top: 22px; color: #64748b; font-size: 14px; }
 footer.site a { color: #94a3b8; }
+
+figure { margin: 24px 0; }
+figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(148,163,184,.2); display: block; }
+figcaption { color: #64748b; font-size: 14px; margin-top: 8px; text-align: center; }
