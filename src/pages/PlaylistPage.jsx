@@ -48,7 +48,7 @@ const faqs = [
   },
   {
     q: 'Which export formats are available?',
-    a: 'Two styles: a ZIP with a numbered TXT and SRT file for every video (named after its title) plus a combined text file, or one single PDF or Word document with the whole playlist — a chapter per video. Videos without captions are skipped and listed so you know what was missed.'
+    a: 'For a single video: copy, TXT, SRT, VTT, PDF, or Word. For the whole playlist: a ZIP of numbered TXT + SRT files, one combined TXT, one combined PDF, or one combined Word document — the combined files put a chapter per video into a single file. Videos without captions are skipped and listed so you know what was missed.'
   },
   {
     q: 'Can I get an entire playlist as one PDF?',

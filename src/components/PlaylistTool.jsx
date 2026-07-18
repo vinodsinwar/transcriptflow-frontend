@@ -1,13 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import JSZip from 'jszip';
-import { Play, ListVideo, Lock, CheckCircle2, Download, KeyRound, Sparkles } from 'lucide-react';
+import { Play, ListVideo, Lock, CheckCircle2, Download, Copy, KeyRound, Sparkles, FileText, FileType, FileArchive } from 'lucide-react';
 import ProcessingOverlay from './ProcessingOverlay';
-
-const EXPORT_FORMATS = [
-  { value: 'zip', label: 'ZIP — TXT + SRT per video' },
-  { value: 'pdf', label: 'Combined PDF (one file)' },
-  { value: 'docx', label: 'Combined Word (one file)' },
-];
+import TranscriptViewer from './TranscriptViewer';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -15,6 +10,9 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-
 const PRO_CHECKOUT_MONTHLY = '';
 const PRO_CHECKOUT_YEARLY = '';
 const PAYMENTS_LIVE = Boolean(PRO_CHECKOUT_MONTHLY || PRO_CHECKOUT_YEARLY);
+
+// Combined-document requests can be large; give the server generous headroom.
+const COMBINED_EXPORT_TIMEOUT_MS = 300000;
 
 const formatDuration = (s) => {
   if (!s) return '';
@@ -40,15 +38,27 @@ const PlaylistTool = () => {
   const [keyInput, setKeyInput] = useState('');
   const [showKeyField, setShowKeyField] = useState(false);
   const [keyError, setKeyError] = useState(null);
+
+  // Single-video viewer (parity with the single-video tool)
+  const [selectedId, setSelectedId] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(null); // fetched transcript data for selectedId
+  const [viewerLoading, setViewerLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [exportingSingle, setExportingSingle] = useState(null); // 'docx' | 'pdf'
+  const videoCacheRef = useRef(new Map()); // video_id -> transcript data
+
+  // Whole-playlist bulk export
   const [exporting, setExporting] = useState(null); // {done, total, currentTitle}
-  const [exportFormat, setExportFormat] = useState('zip');
-  const [stopChoice, setStopChoice] = useState(null); // {results, failures, total} after Stop export
+  const [stopChoice, setStopChoice] = useState(null); // {results, failures, total, format}
   const cancelRef = useRef(false);
 
   const fetchPlaylist = async (playlistUrl, key) => {
     setLoading(true);
     setError(null);
     setPlaylist(null);
+    setSelectedId(null);
+    setCurrentVideo(null);
+    videoCacheRef.current = new Map();
     try {
       const body = { playlist_url: playlistUrl };
       if (key) body.license_key = key;
@@ -92,6 +102,59 @@ const PlaylistTool = () => {
     }
   };
 
+  // ---- Single-video viewer ---------------------------------------------------
+
+  // Fetch one video's transcript for the viewer (public endpoint — never spends
+  // Pro quota; viewing individual videos is as free as the single-video tool).
+  const loadVideoIntoViewer = async (videoId) => {
+    if (!videoId) return;
+    setSelectedId(videoId);
+    setError(null);
+    const cached = videoCacheRef.current.get(videoId);
+    if (cached) {
+      setCurrentVideo(cached);
+      return;
+    }
+    setViewerLoading(true);
+    setCurrentVideo(null);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_url: `https://youtu.be/${videoId}` }),
+      });
+      const data = await response.json();
+      if (data.transcript) {
+        videoCacheRef.current.set(videoId, data);
+        setCurrentVideo(data);
+      } else {
+        setError(data.error || 'No transcript available for this video.');
+      }
+    } catch {
+      setError('Failed to load this transcript. Please try again.');
+    } finally {
+      setViewerLoading(false);
+    }
+  };
+
+  // Auto-load the first unlocked video whenever a playlist loads.
+  useEffect(() => {
+    if (!playlist) return;
+    const first = playlist.unlocked_ids[0];
+    if (first) loadVideoIntoViewer(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playlist?.playlist_id]);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   const saveBlob = (blob, filename) => {
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -103,11 +166,42 @@ const PlaylistTool = () => {
     URL.revokeObjectURL(blobUrl);
   };
 
+  const singleName = (format) => `${slugify(currentVideo?.video_title || currentVideo?.video_id)}.${format}`;
+
+  const downloadText = (content, format) => {
+    saveBlob(new Blob([content], { type: 'text/plain' }), singleName(format));
+  };
+
+  // "This video" Word/PDF — identical to the single-video tool's export.
+  const exportSingle = async (format) => {
+    if (!currentVideo || exportingSingle) return;
+    setExportingSingle(format);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_url: `https://youtu.be/${currentVideo.video_id}`, format }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Export failed. Please try again.');
+        return;
+      }
+      saveBlob(await response.blob(), singleName(format));
+    } catch {
+      setError('Export failed. Please try again.');
+    } finally {
+      setExportingSingle(null);
+    }
+  };
+
+  // ---- Whole-playlist bulk export --------------------------------------------
+
   // Package already-fetched transcripts into the chosen format and download.
   // Shared by the normal completion path and "Download partial" after Stop.
-  const packageResults = async (results, failures) => {
+  const packageResults = async (results, failures, format) => {
     const total = results.length;
-    if (exportFormat === 'zip') {
+    if (format === 'zip') {
       const zip = new JSZip();
       results.forEach((r, i) => {
         const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
@@ -122,15 +216,26 @@ const PlaylistTool = () => {
       setExporting({ done: total, total, currentTitle: 'Packaging ZIP…' });
       const blob = await zip.generateAsync({ type: 'blob' });
       saveBlob(blob, `${slugify(playlist.title)}-transcripts.zip`);
+    } else if (format === 'txt') {
+      // Combined plain text — built entirely client-side, instant.
+      setExporting({ done: total, total, currentTitle: 'Building combined text…' });
+      const header = `${playlist.title}\n${results.length} videos • Generated by transcriptflow.io\n`;
+      const combined = results.map(
+        (r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`
+      );
+      saveBlob(new Blob([header + '\n' + combined.join('\n\n')], { type: 'text/plain' }), `${slugify(playlist.title)}-combined.txt`);
     } else {
       // Combined PDF / Word: one formatting call, no extra YouTube fetches needed.
-      setExporting({ done: total, total, currentTitle: `Building combined ${exportFormat.toUpperCase()}…` });
+      setExporting({ done: total, total, currentTitle: `Building combined ${format.toUpperCase()}…` });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), COMBINED_EXPORT_TIMEOUT_MS);
       try {
         const response = await fetch(`${BACKEND_URL}/api/playlist/export`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
-            format: exportFormat,
+            format,
             playlist_title: playlist.title,
             license_key: licenseKey || undefined,
             videos: results.map((r) => ({
@@ -146,16 +251,22 @@ const PlaylistTool = () => {
           const data = await response.json().catch(() => ({}));
           setError(data.error || 'Combined export failed. Please try again.');
         } else {
-          saveBlob(await response.blob(), `${slugify(playlist.title)}-combined.${exportFormat}`);
+          saveBlob(await response.blob(), `${slugify(playlist.title)}-combined.${format}`);
         }
-      } catch {
-        setError('Combined export failed. Please try again.');
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          setError('The combined document is taking too long — try the ZIP or Word export, or a smaller playlist.');
+        } else {
+          setError('Combined export failed. Please try again.');
+        }
+      } finally {
+        clearTimeout(timer);
       }
     }
     setExporting(null);
   };
 
-  const runExport = async () => {
+  const runExport = async (format) => {
     if (!playlist || exporting) return;
     cancelRef.current = false;
     const ids = playlist.unlocked_ids;
@@ -169,6 +280,19 @@ const PlaylistTool = () => {
       if (cancelRef.current) break;
       const id = ids[i];
       setExporting({ done: i, total: ids.length, currentTitle: byId[id]?.title || id });
+      // Reuse anything already fetched into the viewer to save requests/quota.
+      const cached = videoCacheRef.current.get(id);
+      if (cached && cached.transcript) {
+        results.push({
+          video_id: id,
+          title: cached.video_title || byId[id]?.title || id,
+          transcript: cached.transcript,
+          srt: cached.srt,
+          language: cached.language,
+          word_count: cached.word_count,
+        });
+        continue;
+      }
       try {
         const endpoint = playlist.licensed ? '/api/playlist/transcript' : '/api/transcript';
         const body = { video_url: `https://youtu.be/${id}` };
@@ -205,7 +329,7 @@ const PlaylistTool = () => {
       setExporting(null);
       if (results.length > 0) {
         // Let the user choose: download what's fetched, or discard.
-        setStopChoice({ results, failures, total: ids.length });
+        setStopChoice({ results, failures, total: ids.length, format });
       }
       return;
     }
@@ -216,10 +340,18 @@ const PlaylistTool = () => {
       return;
     }
 
-    await packageResults(results, failures);
+    await packageResults(results, failures, format);
   };
 
   const lockedCount = playlist ? playlist.video_count - playlist.unlocked_ids.length : 0;
+  const isUnlocked = (id) => playlist?.unlocked_ids.includes(id);
+
+  const bulkButtons = [
+    { fmt: 'zip', label: 'ZIP (TXT + SRT)', Icon: FileArchive },
+    { fmt: 'txt', label: 'Combined TXT', Icon: FileText },
+    { fmt: 'pdf', label: 'Combined PDF', Icon: FileType },
+    { fmt: 'docx', label: 'Combined Word', Icon: FileType },
+  ];
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -266,42 +398,13 @@ const PlaylistTool = () => {
         <div className="mt-8 space-y-6 text-left">
           {/* Playlist header */}
           <div className="glass p-6 rounded-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xl font-semibold">{playlist.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {playlist.video_count} videos
-                  {playlist.licensed
-                    ? ' — all unlocked with Pro ✨'
-                    : ` — first ${playlist.free_limit} free, ${lockedCount} locked`}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  aria-label="Export format"
-                  value={exportFormat}
-                  onChange={(e) => setExportFormat(e.target.value)}
-                  disabled={!!exporting}
-                  className="input-modern text-sm py-2 px-3 bg-background/80 disabled:opacity-50"
-                >
-                  {EXPORT_FORMATS.map((f) => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={runExport}
-                  disabled={!!exporting}
-                  className="btn-primary flex items-center space-x-2 disabled:opacity-50 whitespace-nowrap"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>
-                    {playlist.licensed
-                      ? `Download all ${playlist.unlocked_ids.length}`
-                      : `Download ${playlist.unlocked_ids.length} free`}
-                  </span>
-                </button>
-              </div>
-            </div>
+            <h3 className="text-xl font-semibold">{playlist.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {playlist.video_count} videos
+              {playlist.licensed
+                ? ' — all unlocked with Pro ✨'
+                : ` — first ${playlist.free_limit} free, ${lockedCount} locked`}
+            </p>
           </div>
 
           {/* Upgrade card (free users with locked videos) */}
@@ -384,13 +487,120 @@ const PlaylistTool = () => {
             </p>
           )}
 
+          {/* Transcript viewer with a video switcher — same experience as single video */}
+          <div className="glass p-4 sm:p-6 rounded-xl space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h4 className="font-semibold text-base truncate max-w-full sm:max-w-[55%]">
+                {currentVideo?.video_title || (viewerLoading ? 'Loading…' : 'Transcript')}
+              </h4>
+              <select
+                aria-label="Choose a video"
+                value={selectedId || ''}
+                onChange={(e) => loadVideoIntoViewer(e.target.value)}
+                className="input-modern text-sm py-2 px-3 bg-background/80 max-w-[260px]"
+              >
+                {playlist.videos.map((v, i) => {
+                  const unlocked = isUnlocked(v.video_id);
+                  const label = `${String(i + 1).padStart(2, '0')}. ${v.title}`;
+                  return (
+                    <option key={v.video_id} value={v.video_id} disabled={!unlocked}>
+                      {unlocked ? label : `🔒 ${label}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* "This video" actions — identical to the single-video tool */}
+            {currentVideo && (
+              <div className="flex flex-wrap gap-3 items-center">
+                <button onClick={() => copyToClipboard(currentVideo.transcript)} className="btn-secondary flex items-center space-x-2 text-sm">
+                  <Copy className="w-4 h-4" />
+                  <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                </button>
+                <button onClick={() => downloadText(currentVideo.transcript, 'txt')} className="btn-secondary flex items-center space-x-2 text-sm">
+                  <Download className="w-4 h-4" />
+                  <span>TXT</span>
+                </button>
+                {currentVideo.srt && (
+                  <button onClick={() => downloadText(currentVideo.srt, 'srt')} className="btn-secondary flex items-center space-x-2 text-sm">
+                    <Download className="w-4 h-4" />
+                    <span>SRT</span>
+                  </button>
+                )}
+                {currentVideo.vtt && (
+                  <button onClick={() => downloadText(currentVideo.vtt, 'vtt')} className="btn-secondary flex items-center space-x-2 text-sm">
+                    <Download className="w-4 h-4" />
+                    <span>VTT</span>
+                  </button>
+                )}
+                <button onClick={() => exportSingle('docx')} disabled={!!exportingSingle} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
+                  {exportingSingle === 'docx'
+                    ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    : <Download className="w-4 h-4" />}
+                  <span>{exportingSingle === 'docx' ? 'Preparing…' : 'Word'}</span>
+                </button>
+                <button onClick={() => exportSingle('pdf')} disabled={!!exportingSingle} className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
+                  {exportingSingle === 'pdf'
+                    ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    : <Download className="w-4 h-4" />}
+                  <span>{exportingSingle === 'pdf' ? 'Preparing…' : 'PDF'}</span>
+                </button>
+              </div>
+            )}
+
+            {viewerLoading ? (
+              <div className="flex items-center justify-center py-16 text-muted-foreground">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-current border-t-transparent mr-3"></div>
+                <span className="text-sm">Fetching transcript…</span>
+              </div>
+            ) : currentVideo ? (
+              <TranscriptViewer transcript={currentVideo.transcript} videoId={currentVideo.video_id} />
+            ) : null}
+          </div>
+
+          {/* Whole-playlist export */}
+          <div className="glass p-4 sm:p-6 rounded-xl">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+              <h4 className="font-semibold text-base">
+                Download the whole playlist
+                <span className="text-sm font-normal text-muted-foreground">
+                  {' '}— {playlist.licensed ? `all ${playlist.unlocked_ids.length} videos` : `first ${playlist.unlocked_ids.length} free`}
+                </span>
+              </h4>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {bulkButtons.map(({ fmt, label, Icon }) => (
+                <button
+                  key={fmt}
+                  onClick={() => runExport(fmt)}
+                  disabled={!!exporting}
+                  className="btn-primary flex items-center space-x-2 text-sm disabled:opacity-50 whitespace-nowrap"
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Very long playlists in non-Latin languages can produce large PDFs — Combined Word or TXT stays small.
+            </p>
+          </div>
+
           {/* Video list */}
           <div className="glass p-6 rounded-xl">
             <div className="max-h-96 overflow-y-auto divide-y divide-border/40">
               {playlist.videos.map((v, i) => {
-                const unlocked = playlist.unlocked_ids.includes(v.video_id);
+                const unlocked = isUnlocked(v.video_id);
                 return (
-                  <div key={v.video_id} className="flex items-center py-2.5 gap-3 text-sm">
+                  <button
+                    key={v.video_id}
+                    onClick={() => unlocked && loadVideoIntoViewer(v.video_id)}
+                    disabled={!unlocked}
+                    className={`w-full text-left flex items-center py-2.5 gap-3 text-sm transition-colors ${
+                      unlocked ? 'hover:bg-primary/5 cursor-pointer' : 'cursor-not-allowed'
+                    } ${selectedId === v.video_id ? 'bg-primary/10' : ''}`}
+                  >
                     <span className="w-8 text-right text-muted-foreground flex-shrink-0">{i + 1}.</span>
                     {unlocked
                       ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
@@ -401,7 +611,7 @@ const PlaylistTool = () => {
                     <span className="text-xs text-muted-foreground flex-shrink-0">
                       {formatDuration(v.duration_seconds)}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -409,7 +619,7 @@ const PlaylistTool = () => {
         </div>
       )}
 
-      {/* Standard processing popup (same as single-video pages), with live playlist progress */}
+      {/* Bulk-playlist progress popup (same overlay as single-video pages) */}
       <ProcessingOverlay
         isVisible={!!exporting || !!stopChoice}
         mode="playlist"
@@ -419,10 +629,17 @@ const PlaylistTool = () => {
         onDownloadPartial={async () => {
           const choice = stopChoice;
           setStopChoice(null);
-          if (choice) await packageResults(choice.results, choice.failures);
+          if (choice) await packageResults(choice.results, choice.failures, choice.format);
         }}
         onDiscard={() => setStopChoice(null)}
         videoUrl={url}
+      />
+
+      {/* Single-video Word/PDF export popup (identical to the single-video tool) */}
+      <ProcessingOverlay
+        isVisible={!!exportingSingle}
+        mode={exportingSingle || 'transcript'}
+        videoUrl={currentVideo ? `https://youtu.be/${currentVideo.video_id}` : ''}
       />
     </div>
   );
