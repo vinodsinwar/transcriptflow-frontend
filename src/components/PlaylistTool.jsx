@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import JSZip from 'jszip';
 import { Play, ListVideo, Lock, CheckCircle2, Download, KeyRound, Sparkles } from 'lucide-react';
+import ProcessingOverlay from './ProcessingOverlay';
 
 const EXPORT_FORMATS = [
   { value: 'zip', label: 'ZIP — TXT + SRT per video' },
@@ -41,6 +42,8 @@ const PlaylistTool = () => {
   const [keyError, setKeyError] = useState(null);
   const [exporting, setExporting] = useState(null); // {done, total, currentTitle}
   const [exportFormat, setExportFormat] = useState('zip');
+  const [stopChoice, setStopChoice] = useState(null); // {results, failures, total} after Stop export
+  const cancelRef = useRef(false);
 
   const fetchPlaylist = async (playlistUrl, key) => {
     setLoading(true);
@@ -100,8 +103,61 @@ const PlaylistTool = () => {
     URL.revokeObjectURL(blobUrl);
   };
 
+  // Package already-fetched transcripts into the chosen format and download.
+  // Shared by the normal completion path and "Download partial" after Stop.
+  const packageResults = async (results, failures) => {
+    const total = results.length;
+    if (exportFormat === 'zip') {
+      const zip = new JSZip();
+      results.forEach((r, i) => {
+        const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
+        zip.file(`${base}.txt`, r.transcript);
+        if (r.srt) zip.file(`${base}.srt`, r.srt);
+      });
+      const combined = results.map((r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`);
+      zip.file('_all-transcripts-combined.txt', combined.join('\n\n'));
+      if (failures.length) {
+        zip.file('_skipped-videos.txt', `No transcript available for:\n${failures.join('\n')}`);
+      }
+      setExporting({ done: total, total, currentTitle: 'Packaging ZIP…' });
+      const blob = await zip.generateAsync({ type: 'blob' });
+      saveBlob(blob, `${slugify(playlist.title)}-transcripts.zip`);
+    } else {
+      // Combined PDF / Word: one formatting call, no extra YouTube fetches needed.
+      setExporting({ done: total, total, currentTitle: `Building combined ${exportFormat.toUpperCase()}…` });
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/playlist/export`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format: exportFormat,
+            playlist_title: playlist.title,
+            license_key: licenseKey || undefined,
+            videos: results.map((r) => ({
+              video_id: r.video_id,
+              title: r.title,
+              transcript: r.transcript,
+              language: r.language,
+              word_count: r.word_count,
+            })),
+          }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.error || 'Combined export failed. Please try again.');
+        } else {
+          saveBlob(await response.blob(), `${slugify(playlist.title)}-combined.${exportFormat}`);
+        }
+      } catch {
+        setError('Combined export failed. Please try again.');
+      }
+    }
+    setExporting(null);
+  };
+
   const runExport = async () => {
     if (!playlist || exporting) return;
+    cancelRef.current = false;
     const ids = playlist.unlocked_ids;
     const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
     const results = []; // {video_id, title, transcript, srt, language, word_count}
@@ -110,6 +166,7 @@ const PlaylistTool = () => {
     setError(null);
 
     for (let i = 0; i < ids.length; i++) {
+      if (cancelRef.current) break;
       const id = ids[i];
       setExporting({ done: i, total: ids.length, currentTitle: byId[id]?.title || id });
       try {
@@ -144,58 +201,22 @@ const PlaylistTool = () => {
       }
     }
 
+    if (cancelRef.current) {
+      setExporting(null);
+      if (results.length > 0) {
+        // Let the user choose: download what's fetched, or discard.
+        setStopChoice({ results, failures, total: ids.length });
+      }
+      return;
+    }
+
     if (results.length === 0) {
       if (!quotaHit) setError('None of these videos have transcripts available.');
       setExporting(null);
       return;
     }
 
-    if (exportFormat === 'zip') {
-      const zip = new JSZip();
-      results.forEach((r, i) => {
-        const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
-        zip.file(`${base}.txt`, r.transcript);
-        if (r.srt) zip.file(`${base}.srt`, r.srt);
-      });
-      const combined = results.map((r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`);
-      zip.file('_all-transcripts-combined.txt', combined.join('\n\n'));
-      if (failures.length) {
-        zip.file('_skipped-videos.txt', `No transcript available for:\n${failures.join('\n')}`);
-      }
-      setExporting({ done: ids.length, total: ids.length, currentTitle: 'Packaging ZIP…' });
-      const blob = await zip.generateAsync({ type: 'blob' });
-      saveBlob(blob, `${slugify(playlist.title)}-transcripts.zip`);
-    } else {
-      // Combined PDF / Word: one formatting call, no extra YouTube fetches needed.
-      setExporting({ done: ids.length, total: ids.length, currentTitle: `Building combined ${exportFormat.toUpperCase()}…` });
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/playlist/export`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            format: exportFormat,
-            playlist_title: playlist.title,
-            license_key: licenseKey || undefined,
-            videos: results.map((r) => ({
-              video_id: r.video_id,
-              title: r.title,
-              transcript: r.transcript,
-              language: r.language,
-              word_count: r.word_count,
-            })),
-          }),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          setError(data.error || 'Combined export failed. Please try again.');
-        } else {
-          saveBlob(await response.blob(), `${slugify(playlist.title)}-combined.${exportFormat}`);
-        }
-      } catch {
-        setError('Combined export failed. Please try again.');
-      }
-    }
-    setExporting(null);
+    await packageResults(results, failures);
   };
 
   const lockedCount = playlist ? playlist.video_count - playlist.unlocked_ids.length : 0;
@@ -281,20 +302,6 @@ const PlaylistTool = () => {
                 </button>
               </div>
             </div>
-            {exporting && (
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span className="truncate pr-4">{exporting.currentTitle}</span>
-                  <span>{exporting.done}/{exporting.total}</span>
-                </div>
-                <div className="h-2 bg-background/60 rounded-full overflow-hidden">
-                  <div
-                    className="h-full gradient-bg transition-all duration-300"
-                    style={{ width: `${Math.round((exporting.done / Math.max(exporting.total, 1)) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Upgrade card (free users with locked videos) */}
@@ -401,6 +408,22 @@ const PlaylistTool = () => {
           </div>
         </div>
       )}
+
+      {/* Standard processing popup (same as single-video pages), with live playlist progress */}
+      <ProcessingOverlay
+        isVisible={!!exporting || !!stopChoice}
+        mode="playlist"
+        progress={exporting}
+        stopped={stopChoice ? { done: stopChoice.results.length, total: stopChoice.total } : null}
+        onCancel={() => { cancelRef.current = true; }}
+        onDownloadPartial={async () => {
+          const choice = stopChoice;
+          setStopChoice(null);
+          if (choice) await packageResults(choice.results, choice.failures);
+        }}
+        onDiscard={() => setStopChoice(null)}
+        videoUrl={url}
+      />
     </div>
   );
 };
