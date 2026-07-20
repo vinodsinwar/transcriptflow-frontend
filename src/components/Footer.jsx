@@ -21,9 +21,11 @@ const Footer = () => {
     ],
     guides: [
       { name: 'Get a YouTube Transcript', href: '/blog/how-to-get-youtube-video-transcript' },
-      { name: 'SRT vs VTT Formats', href: '/blog/download-youtube-subtitles-srt-vtt' },
-      { name: 'Translate YouTube Subtitles', href: '/blog/translate-youtube-subtitles' },
-      { name: 'Video to Blog Post', href: '/blog/youtube-video-to-blog-post' }
+      { name: 'Transcript to PDF or Word', href: '/blog/youtube-transcript-to-pdf-word' },
+      { name: 'Download a Playlist', href: '/blog/youtube-playlist-transcript-guide' },
+      { name: 'Transcript on Your Phone', href: '/blog/youtube-transcript-on-phone' },
+      { name: 'Best Transcript Tools', href: '/blog/best-youtube-transcript-tools-2026' },
+      { name: 'Translate YouTube Subtitles', href: '/blog/translate-youtube-subtitles' }
     ],
     support: [
       { name: 'Contact Us', href: '#contact' },

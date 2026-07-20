@@ -70,6 +70,36 @@ const faqs = [
   {
     q: 'Which videos can be transcribed?',
     a: 'Any public YouTube video that has captions or subtitles available. Private videos, or videos whose owners disabled captions, can’t be transcribed.'
+  },
+  {
+    q: 'How do I copy a YouTube transcript?',
+    a: 'Paste the video link, generate the transcript, then click Copy Text to copy the whole thing to your clipboard. You can also download it as TXT, SRT, VTT, PDF, or Word instead of copying.'
+  },
+  {
+    q: 'How do I get a YouTube transcript without an extension?',
+    a: 'TranscriptFlow runs in your browser — no Chrome extension or install needed. Paste the YouTube URL on the site and the transcript appears in seconds, on any device.'
+  },
+  {
+    q: 'Does this work on a phone?',
+    a: 'Yes. It works in any mobile browser on Android or iPhone. Copy the video’s Share link in the YouTube app, paste it here, and get the transcript — no app to install.'
+  }
+];
+
+const steps = [
+  {
+    n: '1',
+    title: 'Paste the YouTube link',
+    text: 'Copy any YouTube URL — from the address bar, or the Share button in the mobile app — and paste it into the box above. Full links, youtu.be short links, and yt transcript lookups all work.'
+  },
+  {
+    n: '2',
+    title: 'Generate the transcript',
+    text: 'Press the button and TranscriptFlow pulls the video’s captions and builds a clean, timestamped transcript in a few seconds — even for videos with only auto-generated captions.'
+  },
+  {
+    n: '3',
+    title: 'Copy, translate, or download',
+    text: 'Copy the YouTube transcript to your clipboard, translate it into any language the video supports, or download it as TXT, SRT, VTT, PDF, or Word — named after the video.'
   }
 ];
 
@@ -102,6 +132,33 @@ const SEOContent = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* How it works — "YouTube to transcript, step by step" */}
+        <div className="mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">
+            YouTube to Transcript in Three Steps
+          </h2>
+          <p className="text-muted-foreground text-center max-w-3xl mx-auto mb-10">
+            Turning a YouTube video into text takes seconds — no software, no Chrome extension,
+            and no account. Here’s the whole process.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {steps.map((s) => (
+              <div key={s.n} className="glass rounded-xl p-6 border border-border/50">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full gradient-bg text-white font-bold mb-4">{s.n}</div>
+                <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{s.text}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-8 max-w-3xl mx-auto">
+            Need something specific? {' '}
+            <a href="/translate-youtube-transcript" className="text-primary hover:underline">Translate a transcript</a>,{' '}
+            <a href="/download-youtube-subtitles" className="text-primary hover:underline">download subtitles as SRT/VTT</a>,{' '}
+            grab a whole <a href="/youtube-playlist-transcript" className="text-primary hover:underline">playlist transcript</a>, or read the{' '}
+            <a href="/blog/how-to-get-youtube-video-transcript" className="text-primary hover:underline">step-by-step guide</a>.
+          </p>
         </div>
 
         {/* Use case highlights */}
