@@ -1,9 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/bricolage-grotesque";
 
 @custom-variant dark (&:is(.dark *));
 
-/* TranscriptFlow Design System 2025 */
+/* TranscriptFlow Design System — "Paper & Ink"
+   Transcripts are documents: warm paper ground, ink typography,
+   mono timestamps, a highlighter-yellow accent (backgrounds only,
+   never as text color). */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -30,213 +35,204 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  
-  /* TranscriptFlow Brand Colors */
-  --background: oklch(0.08 0.02 240); /* Deep navy */
-  --foreground: oklch(0.98 0.01 240); /* Pure white */
-  --card: oklch(0.12 0.02 240); /* Dark card */
-  --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.12 0.02 240);
-  --popover-foreground: oklch(0.95 0.01 240);
-  
-  /* Primary: Blue gradient */
-  --primary: oklch(0.55 0.15 240); /* Blue */
-  --primary-foreground: oklch(0.98 0.01 240);
-  
-  /* Secondary: Purple accent */
-  --secondary: oklch(0.18 0.03 270); /* Dark purple */
-  --secondary-foreground: oklch(0.95 0.01 240);
-  
-  /* Muted colors */
-  --muted: oklch(0.15 0.02 240);
-  --muted-foreground: oklch(0.65 0.02 240);
-  
-  /* Accent: Purple */
-  --accent: oklch(0.55 0.15 270); /* Purple */
-  --accent-foreground: oklch(0.98 0.01 240);
-  
-  /* Destructive */
-  --destructive: oklch(0.65 0.25 20); /* Red */
-  
-  /* Borders and inputs */
-  --border: oklch(0.25 0.02 240);
-  --input: oklch(0.18 0.02 240);
-  --ring: oklch(0.55 0.15 240);
-}
+  --radius: 0.625rem;
 
-/* Light mode (fallback) */
-.light {
-  --background: oklch(0.98 0.01 240);
-  --foreground: oklch(0.08 0.02 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.08 0.02 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.08 0.02 240);
-  --primary: oklch(0.55 0.15 240);
-  --primary-foreground: oklch(0.98 0.01 240);
-  --secondary: oklch(0.95 0.01 240);
-  --secondary-foreground: oklch(0.08 0.02 240);
-  --muted: oklch(0.95 0.01 240);
-  --muted-foreground: oklch(0.45 0.02 240);
-  --accent: oklch(0.95 0.01 240);
-  --accent-foreground: oklch(0.08 0.02 240);
-  --destructive: oklch(0.65 0.25 20);
-  --border: oklch(0.9 0.01 240);
-  --input: oklch(0.9 0.01 240);
-  --ring: oklch(0.55 0.15 240);
+  /* Paper ground and ink text */
+  --background: oklch(0.977 0.008 85);   /* warm paper */
+  --foreground: oklch(0.24 0.012 80);    /* ink */
+  --card: oklch(0.995 0.003 85);         /* raised paper (near white) */
+  --card-foreground: oklch(0.24 0.012 80);
+  --popover: oklch(0.995 0.003 85);
+  --popover-foreground: oklch(0.24 0.012 80);
+
+  /* Primary: ink (buttons are ink-on-paper) */
+  --primary: oklch(0.26 0.015 80);
+  --primary-foreground: oklch(0.977 0.008 85);
+
+  /* Secondary: soft paper tint */
+  --secondary: oklch(0.945 0.01 85);
+  --secondary-foreground: oklch(0.24 0.012 80);
+
+  /* Muted */
+  --muted: oklch(0.94 0.01 85);
+  --muted-foreground: oklch(0.47 0.015 80);
+
+  /* Accent: highlighter yellow — background highlight only, never text */
+  --accent: oklch(0.87 0.155 92);
+  --accent-foreground: oklch(0.24 0.012 80);
+
+  /* Destructive */
+  --destructive: oklch(0.55 0.2 25);
+
+  /* Borders and inputs */
+  --border: oklch(0.885 0.012 85);
+  --input: oklch(0.995 0.003 85);
+  --ring: oklch(0.26 0.015 80 / 0.35);
+
+  /* Marker color used directly in highlights */
+  --marker: oklch(0.87 0.155 92);
+  --marker-soft: oklch(0.87 0.155 92 / 0.45);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    background: linear-gradient(135deg, 
-      oklch(0.08 0.02 240) 0%, 
-      oklch(0.12 0.02 250) 50%, 
-      oklch(0.15 0.02 260) 100%);
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
     min-height: 100vh;
   }
-  
+
+  h1, h2, h3, .font-display {
+    font-family: 'Bricolage Grotesque Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  h1, h2 {
+    text-wrap: balance;
+  }
+
+  mark {
+    background: var(--marker-soft);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
-    @apply bg-muted;
+    background: oklch(0.95 0.008 85);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-border rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent;
+    background: oklch(0.75 0.015 85);
   }
 }
 
 @layer utilities {
-  /* Glassmorphism effect */
+  /* Paper cards (class names kept from the old glass system) */
   .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+    @apply bg-card border border-border rounded-xl;
+    box-shadow: 0 1px 2px oklch(0.24 0.012 80 / 0.05), 0 4px 16px -8px oklch(0.24 0.012 80 / 0.08);
   }
-  
+
   .glass-strong {
-    @apply bg-card/80 backdrop-blur-2xl border border-border;
+    @apply bg-card border border-border rounded-xl;
+    box-shadow: 0 1px 3px oklch(0.24 0.012 80 / 0.07), 0 10px 28px -10px oklch(0.24 0.012 80 / 0.14);
   }
-  
-  /* Gradient text */
+
+  /* Marker highlight (was gradient text) — ink text on a yellow swipe */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    color: var(--foreground);
+    background-image: linear-gradient(to top, var(--marker-soft) 0%, var(--marker-soft) 38%, transparent 38%);
+    background-repeat: no-repeat;
+    padding: 0 0.08em;
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
-  
-  /* Animated gradient background */
+
+  /* Solid ink tile (was animated gradient) — used for icon squares & progress fills */
   .gradient-bg {
-    background: linear-gradient(-45deg, 
-      oklch(0.55 0.15 240), 
-      oklch(0.55 0.15 270), 
-      oklch(0.55 0.15 300), 
-      oklch(0.55 0.15 240));
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
+    background: var(--foreground);
   }
-  
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* Floating animation */
+
+  /* Floating animation (kept, gentler) */
   .float {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    50% { transform: translateY(-12px); }
   }
-  
-  /* Pulse glow effect */
+
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite alternate;
   }
-  
+
   @keyframes pulse-glow {
-    from { box-shadow: 0 0 20px oklch(0.55 0.15 240 / 0.3); }
-    to { box-shadow: 0 0 40px oklch(0.55 0.15 240 / 0.6); }
+    from { box-shadow: 0 0 0 0 oklch(0.87 0.155 92 / 0.35); }
+    to { box-shadow: 0 0 0 8px oklch(0.87 0.155 92 / 0); }
   }
-  
-  /* Modern button styles */
+
+  /* Buttons: ink on paper */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground 
-           px-6 py-3 rounded-lg font-semibold transition-all duration-300
-           hover:scale-105 hover:shadow-lg hover:shadow-primary/25
-           active:scale-95 focus:outline-none focus:ring-2 focus:ring-ring;
+    @apply bg-primary text-primary-foreground
+           px-6 py-3 rounded-lg font-semibold transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-ring;
+    box-shadow: 0 1px 2px oklch(0.24 0.012 80 / 0.2);
   }
-  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -4px oklch(0.24 0.012 80 / 0.35);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
   .btn-secondary {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 text-foreground px-6 py-3 rounded-lg font-medium 
-           transition-all duration-300 hover:bg-card/80 hover:scale-105
-           active:scale-95 focus:outline-none focus:ring-2 focus:ring-ring;
+    @apply bg-card border border-border text-foreground px-6 py-3 rounded-lg font-medium
+           transition-all duration-200 hover:border-foreground/40
+           focus:outline-none focus:ring-2 focus:ring-ring;
+    box-shadow: 0 1px 2px oklch(0.24 0.012 80 / 0.05);
   }
-  
-  /* Input styles */
+  .btn-secondary:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Inputs: white paper with ink focus */
   .input-modern {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 px-4 py-3 rounded-lg text-foreground placeholder:text-muted-foreground
-           transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring
-           focus:bg-card/90 hover:bg-card/70;
+    @apply bg-input border border-border px-4 py-3 rounded-lg text-foreground placeholder:text-muted-foreground
+           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:border-foreground/40;
+    box-shadow: inset 0 1px 2px oklch(0.24 0.012 80 / 0.04);
   }
-  
+
   /* Card styles */
   .card-modern {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 p-6 rounded-xl transition-all duration-300
-           hover:bg-card/70 hover:scale-[1.02] hover:shadow-xl;
+    @apply bg-card border border-border p-6 rounded-xl transition-all duration-200 hover:shadow-lg;
   }
-  
+
   /* Navigation styles */
   .nav-item {
     @apply text-muted-foreground hover:text-foreground transition-colors duration-200
-           px-3 py-2 rounded-md hover:bg-muted/50;
+           px-3 py-2 rounded-md hover:bg-muted/70;
   }
-  
+
   .nav-item.active {
     @apply text-foreground bg-muted;
   }
-  
-  /* Text shadows */
-  .text-shadow-sm {
-    text-shadow: 0 1px 2px oklch(0 0 0 / 0.5);
+
+  /* Text shadows: neutralized on paper */
+  .text-shadow-sm, .text-shadow, .text-shadow-lg {
+    text-shadow: none;
   }
-  
-  .text-shadow {
-    text-shadow: 0 2px 4px oklch(0 0 0 / 0.5);
-  }
-  
-  .text-shadow-lg {
-    text-shadow: 0 4px 8px oklch(0 0 0 / 0.5);
-  }
-  
+
   /* Backdrop blur utilities */
   .backdrop-blur-xs {
     backdrop-filter: blur(2px);
   }
-  
+
   .backdrop-blur-3xl {
     backdrop-filter: blur(64px);
   }
 }
 
-
-/* Signature visual: shimmering transcript lines behind the hero */
+/* Signature visual: faint transcript lines (ink tint on paper) */
 .transcript-motif {
   position: absolute;
   top: 50%;
@@ -246,13 +242,13 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
-  opacity: 0.35;
+  opacity: 0.5;
   pointer-events: none;
 }
 .transcript-motif-line {
   height: 10px;
   border-radius: 5px;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.16), rgba(139, 92, 246, 0.10));
+  background: linear-gradient(90deg, oklch(0.24 0.012 80 / 0.07), oklch(0.87 0.155 92 / 0.12));
   animation: motif-pulse 4.5s ease-in-out infinite;
 }
 @keyframes motif-pulse {
@@ -261,4 +257,29 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .transcript-motif-line { animation: none; }
+}
+
+/* ---- Paper document card (hero sample transcript) ---- */
+.paper-doc {
+  background: oklch(0.998 0.002 85);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px oklch(0.24 0.012 80 / 0.06),
+    0 12px 32px -12px oklch(0.24 0.012 80 / 0.18),
+    0 32px 64px -32px oklch(0.24 0.012 80 / 0.12);
+  transform: rotate(-1.2deg);
+}
+.paper-doc-behind {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.97 0.008 85);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transform: rotate(1.6deg) translate(8px, 6px);
+  z-index: -1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .paper-doc { transition: transform 0.35s ease; }
+  .paper-doc:hover { transform: rotate(-0.4deg) translateY(-2px); }
 }

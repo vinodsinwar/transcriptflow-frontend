@@ -62,7 +62,7 @@ const PricingPage = () => {
               <ul className="space-y-3 mb-8">
                 {freeFeatures.map((f) => (
                   <li key={f} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5" />
                     <span>{f}</span>
                   </li>
                 ))}

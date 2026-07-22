@@ -56,7 +56,7 @@ const About = () => {
             <p className="text-sm text-muted-foreground">Built and maintained by one developer who uses it daily</p>
           </div>
           <div className="flex items-start space-x-3">
-            <Shield className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+            <Shield className="w-5 h-5 text-green-700 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground">Nothing stored — requests are processed and forgotten</p>
           </div>
           <div className="flex items-start space-x-3">

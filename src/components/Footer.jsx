@@ -133,7 +133,7 @@ const Footer = () => {
         <div className="py-8 border-t border-border/50">
           <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
             <span>© {currentYear} TranscriptFlow. Made with</span>
-            <Heart className="w-4 h-4 text-red-400 fill-current" />
+            <Heart className="w-4 h-4 text-red-700 fill-current" />
             <span>for creators worldwide.</span>
           </div>
         </div>

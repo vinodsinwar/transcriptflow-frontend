@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Youtube, Globe, ListVideo, Download, Copy, FileText, ClipboardPaste, RotateCcw, History, Sparkles } from 'lucide-react';
+import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw, History, Sparkles } from 'lucide-react';
 import { plainText, aiPrompt } from '../lib/transcriptText';
+import TranscriptPaperCard from './TranscriptPaperCard';
 import ProcessingOverlay from './ProcessingOverlay';
 import ResultBanner from './ResultBanner';
 import TranscriptViewer from './TranscriptViewer';
@@ -267,79 +268,36 @@ const Hero = () => {
   };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center pt-16 sm:pt-20">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full gradient-bg opacity-20 blur-3xl float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full gradient-bg opacity-15 blur-3xl float" style={{ animationDelay: '-3s' }}></div>
-        <div className="transcript-motif" aria-hidden="true">
-          {[92, 68, 84, 52, 76, 60, 88, 44].map((w, i) => (
-            <div key={i} className="transcript-motif-line" style={{ width: `${w}%`, animationDelay: `${i * 0.35}s` }}></div>
-          ))}
-        </div>
-      </div>
+    <section id="home" className="relative pt-28 sm:pt-32 pb-12 sm:pb-16">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Split hero: message + form on the left, the product's output on the right */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-14 items-center">
+          {/* Left: message + form */}
+          <div className="text-left">
+            <p className="font-mono text-[11px] sm:text-xs tracking-[0.18em] uppercase text-muted-foreground mb-4">
+              Free · No signup · 125+ languages
+            </p>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold mb-5 leading-[1.06]">
+              Turn any YouTube video into a <span className="gradient-text">transcript</span>
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
+              Paste a link, get every word — timestamped, searchable, and ready to
+              copy, translate, or export. Even whole playlists.
+            </p>
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
-        {/* Main Heading */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-            Free <span className="gradient-text">YouTube Transcript Generator</span>
-          </h1>
-          <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Every word of any YouTube video — as text, subtitles, or translations.
-            Timestamped transcripts in seconds; export TXT, SRT, VTT, PDF, or Word — even whole playlists.
-          </p>
-        </div>
-
-        {/* Features Bar */}
-        <div className="mb-12">
-          <p className="text-lg text-muted-foreground mb-6">
-            Free • No Signup Required • 125+ Languages • Professional Quality
-          </p>
-          
-          {/* Honest capability chips */}
-          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
-            <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <FileText className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">TXT · SRT · VTT · PDF · Word</span>
-            </div>
-            <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <Globe className="w-4 h-4 text-green-400" />
-              <span className="text-sm font-medium">125+ languages</span>
-            </div>
-            <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-              <ListVideo className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium">Whole playlists (Pro)</span>
-            </div>
-            {statsCount && (
-              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-                <Play className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">{statsCount.toLocaleString()} transcripts generated</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Input Form */}
-        <div className="w-full max-w-4xl mx-auto mb-6 sm:mb-8">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            {/* URL Input */}
-            <div className="relative">
-              <label htmlFor="youtube-url" className="block text-left text-sm font-medium text-muted-foreground mb-2 sm:mb-3">
-                YouTube Video URL
-              </label>
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div className="relative">
-                <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                  <Youtube className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-                  <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">YouTube Video URL</span>
+                <label htmlFor="youtube-url" className="sr-only">YouTube video URL</label>
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2">
+                  <Youtube className="w-5 h-5 text-red-600" />
                 </div>
                 <input
                   id="youtube-url"
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Paste any YouTube URL here..."
-                  className="input-modern w-full pl-10 sm:pl-12 lg:pl-40 pr-20 py-3 sm:py-4 text-base sm:text-lg"
+                  placeholder="Paste a YouTube link…"
+                  className="input-modern w-full pl-11 pr-20 py-3.5 text-base"
                   required
                 />
                 {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (
@@ -356,93 +314,82 @@ const Hero = () => {
                   </button>
                 )}
               </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !url.trim()}
+                className="btn-primary w-full py-3.5 text-base font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    <span>Generating transcript…</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>Get the transcript</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* One honest trust line: formats + live counter */}
+            <p className="mt-4 text-xs sm:text-sm text-muted-foreground font-mono">
+              TXT · SRT · VTT · PDF · Word
+              {statsCount ? <> — {statsCount.toLocaleString()} transcripts generated</> : null}
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <span className="text-xs text-muted-foreground">Try with:</span>
+              <button onClick={handleSampleVideo} className="btn-secondary text-xs py-1.5 px-3">
+                Sample Video
+              </button>
+              <button onClick={handleShortUrl} className="btn-secondary text-xs py-1.5 px-3">
+                Short URL
+              </button>
             </div>
 
-            {/* Generate Button */}
-            <button
-              type="submit"
-              disabled={isLoading || !url.trim()}
-              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent"></div>
-                  <span>Generating Transcript...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Generate Transcript</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Sample URLs */}
-          <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <span className="text-xs sm:text-sm text-muted-foreground">Try with:</span>
-            <button
-              onClick={handleSampleVideo}
-              className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4"
-            >
-              Sample Video
-            </button>
-            <button
-              onClick={handleShortUrl}
-              className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4"
-            >
-              Short URL
-            </button>
+            {history.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2 max-w-xl">
+                  <p className="text-xs text-muted-foreground flex items-center space-x-1">
+                    <History className="w-3.5 h-3.5" />
+                    <span>Recent — stored only in your browser</span>
+                  </p>
+                  <button
+                    onClick={() => { setHistory([]); try { localStorage.removeItem('tf_history'); } catch { /* ok */ } }}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 max-w-xl">
+                  {history.slice(0, 4).map((h) => (
+                    <button
+                      key={h.video_id}
+                      onClick={() => setUrl(`https://youtu.be/${h.video_id}`)}
+                      className="glass px-3 py-1.5 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[220px] truncate"
+                      title={h.title}
+                    >
+                      {h.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {history.length > 0 && (
-            <div className="mt-5 text-left max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-muted-foreground flex items-center space-x-1">
-                  <History className="w-3.5 h-3.5" />
-                  <span>Recent — stored only in your browser</span>
-                </p>
-                <button
-                  onClick={() => { setHistory([]); try { localStorage.removeItem('tf_history'); } catch { /* ok */ } }}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Clear
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {history.slice(0, 6).map((h) => (
-                  <button
-                    key={h.video_id}
-                    onClick={() => setUrl(`https://youtu.be/${h.video_id}`)}
-                    className="glass px-3 py-1.5 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[220px] truncate"
-                    title={h.title}
-                  >
-                    {h.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Feature Preview */}
-        <div className="text-center mt-4 sm:mt-0">
-          <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-            Explore powerful features below
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-            <span className="text-muted-foreground">125+ Languages</span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">Multiple Formats</span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">Privacy First</span>
+          {/* Right: what you actually get — a transcript as a document */}
+          <div className="hidden lg:block">
+            <TranscriptPaperCard />
           </div>
         </div>
 
         {/* Error Display */}
         {error && (
-          <div className="w-full max-w-4xl mx-auto mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <div className="flex items-center space-x-2 text-red-400">
+          <div className="w-full max-w-4xl mx-auto mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center space-x-2 text-red-700">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

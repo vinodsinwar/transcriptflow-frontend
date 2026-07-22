@@ -382,7 +382,7 @@ const PlaylistTool = () => {
         >
           {loading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent"></div>
               <span>Loading playlist…</span>
             </>
           ) : (
@@ -395,7 +395,7 @@ const PlaylistTool = () => {
       </form>
 
       {error && (
-        <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {error}
         </div>
       )}
@@ -468,7 +468,7 @@ const PlaylistTool = () => {
                       <button onClick={applyKey} disabled={loading} className="btn-primary text-sm disabled:opacity-50">
                         Activate
                       </button>
-                      {keyError && <p className="w-full text-xs text-red-400">{keyError}</p>}
+                      {keyError && <p className="w-full text-xs text-red-700">{keyError}</p>}
                       <p className="w-full text-xs text-muted-foreground">
                         Lost your key? Retrieve it anytime from the{' '}
                         <a href="https://customer.dodopayments.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
@@ -635,7 +635,7 @@ const PlaylistTool = () => {
                   >
                     <span className="w-8 text-right text-muted-foreground flex-shrink-0">{i + 1}.</span>
                     {unlocked
-                      ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      ? <CheckCircle2 className="w-4 h-4 text-green-700 flex-shrink-0" />
                       : <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                     <span className={`flex-1 truncate ${unlocked ? '' : 'text-muted-foreground'}`}>
                       {v.title}

@@ -16,7 +16,7 @@ const UseCases = () => {
       title: 'Education & Learning',
       description: 'Students and educators use TranscriptFlow to create study materials, lecture notes, and accessible content from educational videos.',
       examples: ['Lecture transcripts', 'Study guides', 'Research notes', 'Accessibility compliance'],
-      color: 'text-blue-400',
+      color: 'text-blue-700',
       bgColor: 'bg-blue-400/10'
     },
     {
@@ -24,7 +24,7 @@ const UseCases = () => {
       title: 'Business & Marketing',
       description: 'Professionals convert webinars, presentations, and marketing videos into searchable text content for better reach and SEO.',
       examples: ['Webinar transcripts', 'Meeting notes', 'Content marketing', 'SEO optimization'],
-      color: 'text-green-400',
+      color: 'text-green-700',
       bgColor: 'bg-green-400/10'
     },
     {
@@ -32,7 +32,7 @@ const UseCases = () => {
       title: 'Content Creation',
       description: 'YouTubers, podcasters, and content creators generate transcripts for better accessibility and content repurposing.',
       examples: ['Video descriptions', 'Blog posts', 'Social media content', 'Subtitles'],
-      color: 'text-purple-400',
+      color: 'text-purple-700',
       bgColor: 'bg-purple-400/10'
     },
     {
@@ -40,7 +40,7 @@ const UseCases = () => {
       title: 'Journalism & Media',
       description: 'Journalists and media professionals quickly transcribe interviews, press conferences, and news content.',
       examples: ['Interview transcripts', 'News articles', 'Quote extraction', 'Fact checking'],
-      color: 'text-yellow-400',
+      color: 'text-amber-600',
       bgColor: 'bg-yellow-400/10'
     },
     {
@@ -48,7 +48,7 @@ const UseCases = () => {
       title: 'Research & Academia',
       description: 'Researchers analyze video content, extract quotes, and create citations from academic and documentary videos.',
       examples: ['Research papers', 'Literature reviews', 'Data analysis', 'Citation creation'],
-      color: 'text-red-400',
+      color: 'text-red-700',
       bgColor: 'bg-red-400/10'
     },
     {

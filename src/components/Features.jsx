@@ -20,28 +20,28 @@ const Features = () => {
       title: '125+',
       subtitle: 'Languages',
       description: 'Support for 125+ languages with automatic language detection and translation capabilities.',
-      color: 'text-blue-400'
+      color: 'text-blue-700'
     },
     {
       icon: Target,
       title: '5',
       subtitle: 'Export Formats',
       description: 'TXT, SRT, VTT, PDF and Word — copy or download, named after the video.',
-      color: 'text-green-400'
+      color: 'text-green-700'
     },
     {
       icon: Timer,
       title: '100',
       subtitle: 'Videos per Playlist',
       description: 'Pro exports entire playlists — as a ZIP of files or one combined PDF/Word document.',
-      color: 'text-purple-400'
+      color: 'text-purple-700'
     },
     {
       icon: Shield,
       title: '100%',
       subtitle: 'Free',
       description: 'Completely free service with no hidden costs, limits, or subscription requirements.',
-      color: 'text-yellow-400'
+      color: 'text-amber-600'
     }
   ];
 

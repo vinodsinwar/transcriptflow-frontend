@@ -7,7 +7,7 @@ const HowItWorks = () => {
       icon: Link,
       title: 'Paste YouTube URL',
       description: 'Simply copy and paste any YouTube video URL into our input field. We support all YouTube video formats including shorts.',
-      color: 'text-blue-400',
+      color: 'text-blue-700',
       bgColor: 'bg-blue-400/10'
     },
     {
@@ -15,7 +15,7 @@ const HowItWorks = () => {
       icon: Cpu,
       title: 'Caption Processing',
       description: 'Our engine locates the best available captions for the video, including auto-generated ones, and cleans them into a readable transcript.',
-      color: 'text-purple-400',
+      color: 'text-purple-700',
       bgColor: 'bg-purple-400/10'
     },
     {
@@ -23,7 +23,7 @@ const HowItWorks = () => {
       icon: Download,
       title: 'Download & Use',
       description: 'Get your formatted transcript instantly. Copy to clipboard, download as TXT, SRT, or VTT files for your projects.',
-      color: 'text-green-400',
+      color: 'text-green-700',
       bgColor: 'bg-green-400/10'
     }
   ];

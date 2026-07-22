@@ -223,7 +223,7 @@ const TranscriptForm = ({ mode = 'download' }) => {
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent"></div>
               <span>Fetching transcript…</span>
             </>
           ) : (
@@ -236,7 +236,7 @@ const TranscriptForm = ({ mode = 'download' }) => {
       </form>
 
       {error && (
-        <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {error}
           {lastUrl && (
             <button
