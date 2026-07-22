@@ -371,7 +371,8 @@ const PlaylistTool = () => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste a YouTube playlist URL (contains list=...)"
-            className="input-modern w-full pl-12 pr-4 py-4 text-lg"
+            className="input-modern w-full py-4 text-lg"
+            style={{ paddingLeft: '3rem', paddingRight: '1rem' }}
             required
           />
         </div>

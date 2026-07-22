@@ -199,7 +199,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste any YouTube URL here..."
-            className="input-modern w-full pl-12 pr-20 py-4 text-lg"
+            className="input-modern w-full py-4 text-lg"
+            style={{ paddingLeft: '3rem', paddingRight: '5.5rem' }}
             required
           />
           {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (

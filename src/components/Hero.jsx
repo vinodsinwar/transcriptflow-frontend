@@ -297,7 +297,8 @@ const Hero = () => {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="Paste a YouTube link…"
-                  className="input-modern w-full pl-11 pr-20 py-3.5 text-base"
+                  className="input-modern w-full py-3.5 text-base"
+                  style={{ paddingLeft: '2.75rem', paddingRight: '5.5rem' }}
                   required
                 />
                 {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (
