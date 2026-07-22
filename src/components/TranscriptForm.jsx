@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw } from 'lucide-react';
+import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw, Sparkles } from 'lucide-react';
 import TranscriptViewer from './TranscriptViewer';
 import ProcessingOverlay from './ProcessingOverlay';
+import { plainText, aiPrompt } from '../lib/transcriptText';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -19,6 +20,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
   const [languagesLoading, setLanguagesLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAI, setCopiedAI] = useState(false);
+  const [withTimestamps, setWithTimestamps] = useState(true);
   const [currentLanguage, setCurrentLanguage] = useState(null);
   const [exporting, setExporting] = useState(null);
   const [lastUrl, setLastUrl] = useState('');
@@ -50,6 +53,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
       if (data.transcript) {
         setTranscript({ ...data, success: true });
         setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 1200);
+      } else if (data.error_type === 'rate_limited') {
+        setError('You’re going fast — please wait about 30 seconds and try again.');
       } else {
         setError(data.error || 'Failed to generate transcript');
       }
@@ -263,9 +268,35 @@ const TranscriptForm = ({ mode = 'download' }) => {
           <div className="glass p-4 rounded-xl">
             <div className="flex flex-wrap gap-3 justify-center items-center">
               {mode === 'translate' && translateSelect}
-              <button onClick={() => copyToClipboard(transcript.transcript)} className="btn-secondary flex items-center space-x-2 text-sm">
-                <Copy className="w-4 h-4" />
-                <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+              <div className="flex items-center rounded-lg overflow-hidden border border-border/60">
+                <button
+                  onClick={() => copyToClipboard(withTimestamps ? transcript.transcript : plainText(transcript.transcript))}
+                  className="btn-secondary flex items-center space-x-2 text-sm rounded-none border-0"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                </button>
+                <button
+                  onClick={() => setWithTimestamps(!withTimestamps)}
+                  className="text-xs px-2.5 py-2.5 bg-background/60 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                  title="Toggle timestamps in copied text"
+                >
+                  {withTimestamps ? '[00:00] on' : '[00:00] off'}
+                </button>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(aiPrompt(transcript.transcript, transcript.video_title));
+                    setCopiedAI(true);
+                    setTimeout(() => setCopiedAI(false), 2000);
+                  } catch (err) { console.error('Failed to copy:', err); }
+                }}
+                className="btn-secondary flex items-center space-x-2 text-sm"
+                title="Copy the transcript wrapped in a ready-to-paste AI summarize prompt"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>{copiedAI ? 'Copied!' : 'Copy for AI'}</span>
               </button>
               <button onClick={() => downloadTranscript(transcript.transcript, 'txt')} className="btn-secondary flex items-center space-x-2 text-sm">
                 <Download className="w-4 h-4" />

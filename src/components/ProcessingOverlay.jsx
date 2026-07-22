@@ -40,7 +40,7 @@ const ProcessingOverlay = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-auto overflow-hidden">
+      <div className="bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-auto overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white text-center">
           <div className="flex items-center justify-center space-x-2 mb-2">
@@ -59,10 +59,10 @@ const ProcessingOverlay = ({
           <div className="p-6 text-center">
             {stopped ? (
               <>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h4 className="text-lg font-semibold text-white mb-2">
                   Stopped at {stopped.done} of {stopped.total} videos
                 </h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+                <p className="text-sm text-gray-400 mb-5">
                   {stopped.done > 0
                     ? 'You can download the transcripts fetched so far, or discard them.'
                     : 'Nothing was fetched yet.'}
@@ -79,7 +79,7 @@ const ProcessingOverlay = ({
                   {onDiscard && (
                     <button
                       onClick={onDiscard}
-                      className="text-sm font-medium px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="text-sm font-medium px-5 py-2.5 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
                     >
                       Discard
                     </button>
@@ -95,28 +95,28 @@ const ProcessingOverlay = ({
                   </div>
                 </div>
 
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h4 className="text-lg font-semibold text-white mb-2">
                   {progress && progress.done >= progress.total ? 'Packaging your download' : 'Fetching transcripts'}
                 </h4>
 
                 {progress && (
                   <>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-2">
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden mb-2">
                       <div
                         className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full transition-all duration-300"
                         style={{ width: `${Math.round((progress.done / Math.max(progress.total, 1)) * 100)}%` }}
                       ></div>
                     </div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                    <p className="text-sm font-medium text-gray-300 mb-1" style={{ fontVariantNumeric: 'tabular-nums' }}>
                       {Math.min(progress.done, progress.total)} of {progress.total} videos
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-3" title={progress.currentTitle}>
+                    <p className="text-xs text-gray-400 truncate mb-3" title={progress.currentTitle}>
                       {progress.currentTitle}
                     </p>
                   </>
                 )}
 
-                <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <div className="flex items-center justify-center space-x-2 text-sm text-gray-400 mb-4">
                   <Clock className="w-4 h-4" />
                   <span>{processingTime}s elapsed</span>
                 </div>
@@ -124,7 +124,7 @@ const ProcessingOverlay = ({
                 {onCancel && progress && progress.done < progress.total && (
                   <button
                     onClick={onCancel}
-                    className="text-sm font-medium px-5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="text-sm font-medium px-5 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
                   >
                     Stop export
                   </button>
@@ -141,16 +141,16 @@ const ProcessingOverlay = ({
             </div>
           </div>
 
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h4 className="text-lg font-semibold text-white mb-2">
             {mode === 'transcript' ? 'Processing Video' : `Creating ${mode === 'docx' ? 'Word document' : 'PDF document'}`}
           </h4>
 
-          <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <div className="flex items-center justify-center space-x-2 text-sm text-gray-400 mb-4">
             <Clock className="w-4 h-4" />
             <span>{processingTime}s elapsed</span>
           </div>
 
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-gray-400">
             {mode === 'transcript' ? (
               <>
                 <p>• Fetching available captions</p>
@@ -169,7 +169,7 @@ const ProcessingOverlay = ({
         )}
 
         {/* Footer */}
-        <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-center">
+        <div className="bg-gray-800 px-6 py-3 text-center">
           <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
             <span>🔒 Secure Processing</span>
             <span>•</span>

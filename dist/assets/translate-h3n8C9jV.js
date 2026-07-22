@@ -1,4 +1,4 @@
-import{c as n,j as e,H as l,F as o,a,r as i}from"./App-CDMNKCQj.js";import{T as d}from"./TranscriptForm-CjPVY7J-.js";import{G as c,L as x}from"./languages-BoZSn-Ks.js";import{D as m}from"./TranscriptViewer-HqgE8Z09.js";import"./rotate-ccw-BU7h2CTg.js";/**
+import{c as n,j as e,H as l,F as o,a,r as i}from"./App-B0KKhqNM.js";import{T as d}from"./TranscriptForm-BilKxGHY.js";import{G as c,L as x}from"./languages-CaA41aoB.js";import{D as m}from"./TranscriptViewer-lIYgmR7V.js";import"./rotate-ccw-BOAkYd3F.js";/**
  * @license lucide-react v0.510.0 - ISC
  *
  * This source code is licensed under the ISC license.

@@ -25,7 +25,7 @@ const Footer = () => {
       { name: 'Download a Playlist', href: '/blog/youtube-playlist-transcript-guide' },
       { name: 'Transcript on Your Phone', href: '/blog/youtube-transcript-on-phone' },
       { name: 'Best Transcript Tools', href: '/blog/best-youtube-transcript-tools-2026' },
-      { name: 'Translate YouTube Subtitles', href: '/blog/translate-youtube-subtitles' }
+      { name: 'All guides →', href: '/blog/' }
     ],
     support: [
       { name: 'Contact Us', href: '#contact' },

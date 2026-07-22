@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Youtube, Globe, ListVideo, Download, Copy, FileText, ClipboardPaste, RotateCcw, History } from 'lucide-react';
+import { Play, Youtube, Globe, ListVideo, Download, Copy, FileText, ClipboardPaste, RotateCcw, History, Sparkles } from 'lucide-react';
+import { plainText, aiPrompt } from '../lib/transcriptText';
 import ProcessingOverlay from './ProcessingOverlay';
 import ResultBanner from './ResultBanner';
 import TranscriptViewer from './TranscriptViewer';
@@ -14,6 +15,8 @@ const Hero = () => {
   const [languagesLoading, setLanguagesLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAI, setCopiedAI] = useState(false);
+  const [withTimestamps, setWithTimestamps] = useState(true);
   const [currentLanguage, setCurrentLanguage] = useState(null);
   const [exporting, setExporting] = useState(null);
   const [statsCount, setStatsCount] = useState(null);
@@ -111,7 +114,9 @@ const Hero = () => {
         }
       } else {
         console.log('Backend returned error:', data.error);
-        setError(data.error || 'Failed to generate transcript');
+        setError(data.error_type === 'rate_limited'
+          ? 'You’re going fast — please wait about 30 seconds and try again.'
+          : (data.error || 'Failed to generate transcript'));
         
         // Track transcript generation error
         if (typeof dataLayer !== 'undefined') {
@@ -485,12 +490,35 @@ const Hero = () => {
             {/* Download & Translate Options */}
             <div className="glass p-4 rounded-xl">
               <div className="flex flex-wrap gap-3 justify-center items-center">
+                <div className="flex items-center rounded-lg overflow-hidden border border-border/60">
+                  <button
+                    onClick={() => copyToClipboard(withTimestamps ? transcript.transcript : plainText(transcript.transcript))}
+                    className="btn-secondary flex items-center space-x-2 text-sm rounded-none border-0"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                  </button>
+                  <button
+                    onClick={() => setWithTimestamps(!withTimestamps)}
+                    className="text-xs px-2.5 py-2.5 bg-background/60 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                    title="Toggle timestamps in copied text"
+                  >
+                    {withTimestamps ? '[00:00] on' : '[00:00] off'}
+                  </button>
+                </div>
                 <button
-                  onClick={() => copyToClipboard(transcript.transcript)}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(aiPrompt(transcript.transcript, transcript.video_title));
+                      setCopiedAI(true);
+                      setTimeout(() => setCopiedAI(false), 2000);
+                    } catch (err) { console.error('Failed to copy:', err); }
+                  }}
                   className="btn-secondary flex items-center space-x-2 text-sm"
+                  title="Copy the transcript wrapped in a ready-to-paste AI summarize prompt"
                 >
-                  <Copy className="w-4 h-4" />
-                  <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                  <Sparkles className="w-4 h-4" />
+                  <span>{copiedAI ? 'Copied!' : 'Copy for AI'}</span>
                 </button>
                 <button
                   onClick={() => downloadTranscript(transcript.transcript, 'txt')}

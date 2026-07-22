@@ -66,7 +66,7 @@ const Header = () => {
           {/* CTA Button */}
           <div className="hidden md:block">
             <button className="btn-primary" onClick={goToInput}>
-              Try Free
+              Get a transcript
             </button>
           </div>
 
@@ -100,7 +100,7 @@ const Header = () => {
               ))}
               <div className="pt-2">
                 <button className="btn-primary w-full" onClick={goToInput}>
-                  Try Free
+                  Get a transcript
                 </button>
               </div>
             </nav>

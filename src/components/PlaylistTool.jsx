@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import JSZip from 'jszip';
 import { Play, ListVideo, Lock, CheckCircle2, Download, Copy, KeyRound, Sparkles, FileText, FileType, FileArchive } from 'lucide-react';
 import ProcessingOverlay from './ProcessingOverlay';
 import TranscriptViewer from './TranscriptViewer';
+import { plainText, aiPrompt } from '../lib/transcriptText';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -44,6 +44,8 @@ const PlaylistTool = () => {
   const [currentVideo, setCurrentVideo] = useState(null); // fetched transcript data for selectedId
   const [viewerLoading, setViewerLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAI, setCopiedAI] = useState(false);
+  const [withTimestamps, setWithTimestamps] = useState(true);
   const [exportingSingle, setExportingSingle] = useState(null); // 'docx' | 'pdf'
   const videoCacheRef = useRef(new Map()); // video_id -> transcript data
 
@@ -127,6 +129,8 @@ const PlaylistTool = () => {
       if (data.transcript) {
         videoCacheRef.current.set(videoId, data);
         setCurrentVideo(data);
+      } else if (data.error_type === 'rate_limited') {
+        setError('You’re switching fast — please wait about 30 seconds and try again.');
       } else {
         setError(data.error || 'No transcript available for this video.');
       }
@@ -202,6 +206,8 @@ const PlaylistTool = () => {
   const packageResults = async (results, failures, format) => {
     const total = results.length;
     if (format === 'zip') {
+      // JSZip is only needed for ZIP exports — load it on demand.
+      const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
       results.forEach((r, i) => {
         const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
@@ -439,7 +445,7 @@ const PlaylistTool = () => {
                       </>
                     ) : (
                       <span className="text-sm px-3 py-2 rounded-lg glass text-muted-foreground">
-                        🚀 Pro launches in a few days — email support@transcriptflow.io for early access
+                        🚀 Pro is launching soon — email support@transcriptflow.io for early access
                       </span>
                     )}
                     <button
@@ -514,9 +520,35 @@ const PlaylistTool = () => {
             {/* "This video" actions — identical to the single-video tool */}
             {currentVideo && (
               <div className="flex flex-wrap gap-3 items-center">
-                <button onClick={() => copyToClipboard(currentVideo.transcript)} className="btn-secondary flex items-center space-x-2 text-sm">
-                  <Copy className="w-4 h-4" />
-                  <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                <div className="flex items-center rounded-lg overflow-hidden border border-border/60">
+                  <button
+                    onClick={() => copyToClipboard(withTimestamps ? currentVideo.transcript : plainText(currentVideo.transcript))}
+                    className="btn-secondary flex items-center space-x-2 text-sm rounded-none border-0"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+                  </button>
+                  <button
+                    onClick={() => setWithTimestamps(!withTimestamps)}
+                    className="text-xs px-2.5 py-2.5 bg-background/60 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                    title="Toggle timestamps in copied text"
+                  >
+                    {withTimestamps ? '[00:00] on' : '[00:00] off'}
+                  </button>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(aiPrompt(currentVideo.transcript, currentVideo.video_title));
+                      setCopiedAI(true);
+                      setTimeout(() => setCopiedAI(false), 2000);
+                    } catch (err) { console.error('Failed to copy:', err); }
+                  }}
+                  className="btn-secondary flex items-center space-x-2 text-sm"
+                  title="Copy the transcript wrapped in a ready-to-paste AI summarize prompt"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>{copiedAI ? 'Copied!' : 'Copy for AI'}</span>
                 </button>
                 <button onClick={() => downloadText(currentVideo.transcript, 'txt')} className="btn-secondary flex items-center space-x-2 text-sm">
                   <Download className="w-4 h-4" />

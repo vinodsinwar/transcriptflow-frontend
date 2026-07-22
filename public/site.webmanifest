@@ -1,0 +1,16 @@
+{
+  "name": "TranscriptFlow — YouTube Transcript Generator",
+  "short_name": "TranscriptFlow",
+  "description": "Free YouTube transcript generator. Copy, translate, or download any video's transcript.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0a0a0f",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
