@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw, History, Sparkles } from 'lucide-react';
 import { plainText, aiPrompt } from '../lib/transcriptText';
 import TranscriptPaperCard from './TranscriptPaperCard';
+import RatingWidget from './RatingWidget';
 import ProcessingOverlay from './ProcessingOverlay';
 import ResultBanner from './ResultBanner';
 import TranscriptViewer from './TranscriptViewer';
@@ -555,6 +556,10 @@ const Hero = () => {
 
             {/* Transcript reading view */}
             <TranscriptViewer transcript={transcript.transcript} videoId={transcript.video_id} />
+
+            <div className="glass p-4 rounded-xl flex justify-center">
+              <RatingWidget page="home" prompt="Was this useful? Rate the tool" />
+            </div>
           </div>
         )}
         {/* Footer with Legal Links */}

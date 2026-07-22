@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import RatingWidget from '../components/RatingWidget';
 import TranscriptForm from '../components/TranscriptForm';
 import { FileText, Clapperboard, Captions, FileDown } from 'lucide-react';
 
@@ -72,6 +73,9 @@ const DownloadPage = () => {
             or polished PDF and Word documents — free, instant, and no signup required.
           </p>
           <TranscriptForm mode="download" />
+          <div className="flex justify-center mt-8">
+            <RatingWidget page="download" />
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">

@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import RatingWidget from '../components/RatingWidget';
 import TranscriptForm from '../components/TranscriptForm';
 import { Globe, Languages, MousePointerClick, Download } from 'lucide-react';
 
@@ -47,6 +48,9 @@ const TranslatePage = () => {
             free, instant, and no signup required.
           </p>
           <TranscriptForm mode="translate" />
+          <div className="flex justify-center mt-8">
+            <RatingWidget page="translate" />
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">

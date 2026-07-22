@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import RatingWidget from '../components/RatingWidget';
 import PlaylistTool from '../components/PlaylistTool';
 import { ListVideo, Archive, GraduationCap, Database, FolderArchive, FileText } from 'lucide-react';
 
@@ -90,6 +91,9 @@ const PlaylistPage = () => {
             files, or one combined PDF or Word document. First 2 videos free — no signup required.
           </p>
           <PlaylistTool />
+          <div className="flex justify-center mt-8">
+            <RatingWidget page="playlist" />
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">

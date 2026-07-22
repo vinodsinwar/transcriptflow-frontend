@@ -1,4 +1,5 @@
 import { Zap, Globe, Lock, FileText, GraduationCap, Megaphone, Search, Accessibility } from 'lucide-react';
+import RatingWidget from './RatingWidget';
 
 const benefits = [
   {
@@ -196,6 +197,9 @@ const SEOContent = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
               </div>
             ))}
+          </div>
+          <div className="flex justify-center mt-10">
+            <RatingWidget page="home" />
           </div>
         </div>
       </div>
