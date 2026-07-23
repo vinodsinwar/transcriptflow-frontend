@@ -41,7 +41,7 @@ const faqs = [
   },
   {
     q: 'What does TranscriptFlow Pro cost?',
-    a: '$4.99/month or $29/year. Pro covers 1,000 videos per month (max 200/day, 100 per playlist or channel), bulk translation, AI summaries, playlist-wide search, and API access — comparable tools charge $9.99+ for less.'
+    a: 'Two options: a $4.99 one-time Course Pack (100 video credits, valid 12 months — perfect for a single course), or Pro at $6.99/month / $49/year for 1,000 videos every month plus AI summaries and API access. Comparable tools charge $9.99+ for less.'
   },
   {
     q: 'Do I need an account?',
@@ -216,8 +216,8 @@ const PlaylistPage = () => {
             </div>
             <div className="glass-strong rounded-xl p-8 border border-primary/40">
               <h3 className="text-xl font-bold mb-1">Pro</h3>
-              <p className="text-3xl font-bold mb-1">$4.99<span className="text-base font-normal text-muted-foreground">/month</span></p>
-              <p className="text-sm text-muted-foreground mb-4">or $29/year (save 51%)</p>
+              <p className="text-3xl font-bold mb-1">$6.99<span className="text-base font-normal text-muted-foreground">/month</span></p>
+              <p className="text-sm text-muted-foreground mb-4">or $49/year — or a $4.99 one-time Course Pack (100 credits)</p>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li>✓ Everything in Free</li>
                 <li>✓ Full playlist exports (up to 100 videos each)</li>

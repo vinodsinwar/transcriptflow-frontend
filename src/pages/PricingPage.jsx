@@ -11,6 +11,16 @@ const freeFeatures = [
   'No account, no stored data',
 ];
 
+const packFeatures = [
+  '100 video credits — enough for a full course',
+  'Valid 12 months, use anytime',
+  'All export styles: ZIP, combined PDF/Word/TXT, one doc per video',
+  'Playlists, channels & pasted video lists',
+  'Bulk translation + playlist-wide search',
+  'AI summaries (2 credits each)',
+  'One payment, no subscription, no card on file',
+];
+
 const proFeatures = [
   'Everything in Free',
   'Full playlists & channels — up to 100 videos each, 1,000/month (200/day)',
@@ -36,6 +46,14 @@ const faqs = [
     a: 'Your key stays active until the end of the paid period, then deactivates automatically. No emails to write, no retention flows to fight through.'
   },
   {
+    q: 'What exactly is a credit?',
+    a: '1 credit = 1 video transcript, in any format you like. An AI summary costs 2 credits. That\u2019s the whole system — no separate "premium credits" or hidden multipliers.'
+  },
+  {
+    q: 'Course Pack or Pro — which should I pick?',
+    a: 'One course or project to download? The $4.99 Pack (100 credits, valid a year, no subscription). Working with videos every week, or need the API? Pro is dramatically cheaper per video (1,000/month for $6.99).'
+  },
+  {
     q: 'Is the monthly quota really 1,000 videos?',
     a: 'Yes — with a 200/day burst limit to keep the service fast for everyone. That is 10–20× more generous than comparable tools.'
   },
@@ -55,7 +73,7 @@ const PricingPage = () => {
             whole playlists at once.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
             {/* Free */}
             <div className="glass rounded-2xl p-8 border border-border/50">
               <h2 className="text-xl font-bold mb-1">Free</h2>
@@ -74,6 +92,30 @@ const PricingPage = () => {
               </a>
             </div>
 
+            {/* Course Pack — one-time */}
+            <div className="glass rounded-2xl p-8 border border-border/50 relative">
+              <div className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                One project? Start here
+              </div>
+              <h2 className="text-xl font-bold mb-1">Course Pack</h2>
+              <p className="text-4xl font-bold mb-1">$4.99</p>
+              <p className="text-sm text-muted-foreground mb-6">one-time — not a subscription</p>
+              <ul className="space-y-3 mb-8">
+                {packFeatures.map((f) => (
+                  <li key={f} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                    <Check className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/youtube-playlist-transcript" className="btn-secondary w-full block text-center">
+                Try 2 videos free first
+              </a>
+              <p className="text-center text-xs text-muted-foreground mt-3">
+                1 credit = 1 video transcript
+              </p>
+            </div>
+
             {/* Pro */}
             <div className="glass-strong rounded-2xl p-8 border border-primary/40 relative">
               <div className="absolute -top-3 right-6 gradient-bg text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center space-x-1">
@@ -82,9 +124,9 @@ const PricingPage = () => {
               </div>
               <h2 className="text-xl font-bold mb-1">Pro</h2>
               <p className="text-4xl font-bold mb-1">
-                $4.99<span className="text-lg font-normal text-muted-foreground">/month</span>
+                $6.99<span className="text-lg font-normal text-muted-foreground">/month</span>
               </p>
-              <p className="text-sm text-muted-foreground mb-2">or $29/year — save 51%</p>
+              <p className="text-sm text-muted-foreground mb-2">or $49/year — 5 months free</p>
               <p className="text-xs text-muted-foreground mb-6">Comparable tools charge $9.99+ for the same 1,000 videos — and cap video length. We don't.</p>
               <ul className="space-y-3 mb-8">
                 {proFeatures.map((f) => (

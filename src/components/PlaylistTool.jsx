@@ -9,9 +9,10 @@ import SummarizeButton from './SummarizeButton';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
 // Set these to the live Dodo Payments checkout links to enable purchases.
+const PACK_CHECKOUT = '';
 const PRO_CHECKOUT_MONTHLY = '';
 const PRO_CHECKOUT_YEARLY = '';
-const PAYMENTS_LIVE = Boolean(PRO_CHECKOUT_MONTHLY || PRO_CHECKOUT_YEARLY);
+const PAYMENTS_LIVE = Boolean(PACK_CHECKOUT || PRO_CHECKOUT_MONTHLY || PRO_CHECKOUT_YEARLY);
 
 // Combined-document requests can be large; give the server generous headroom.
 const COMBINED_EXPORT_TIMEOUT_MS = 300000;
@@ -606,21 +607,25 @@ const PlaylistTool = () => {
                     Unlock all {playlist.video_count} videos with TranscriptFlow Pro
                   </h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    1,000 videos/month: playlists & channels, every export format, bulk translation, AI summaries, and API access.
-                    <span className="text-foreground font-medium"> $4.99/month</span> or
-                    <span className="text-foreground font-medium"> $29/year</span>.
+                    <span className="text-foreground font-medium">Course Pack — $4.99 one-time</span> (100 video credits, valid 12 months, no subscription)
+                    {' '}or <span className="text-foreground font-medium">Pro — $6.99/month</span> (1,000 videos/mo, AI summaries, API).
                   </p>
                   <div className="flex flex-wrap items-center gap-3">
                     {PAYMENTS_LIVE ? (
                       <>
+                        {PACK_CHECKOUT && (
+                          <a href={PACK_CHECKOUT} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm">
+                            Course Pack — $4.99 once
+                          </a>
+                        )}
                         {PRO_CHECKOUT_MONTHLY && (
-                          <a href={PRO_CHECKOUT_MONTHLY} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm">
-                            Get Pro — $4.99/mo
+                          <a href={PRO_CHECKOUT_MONTHLY} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm">
+                            Pro — $6.99/mo
                           </a>
                         )}
                         {PRO_CHECKOUT_YEARLY && (
                           <a href={PRO_CHECKOUT_YEARLY} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm">
-                            $29/year (save 51%)
+                            $49/year (5 months free)
                           </a>
                         )}
                       </>
@@ -664,12 +669,14 @@ const PlaylistTool = () => {
             </div>
           )}
 
-          {/* Quota display for licensed users */}
+          {/* Quota / credits display for licensed users */}
           {playlist.licensed && (
             <p className="text-xs text-muted-foreground text-center">
-              Pro license active — quota: 200 videos/day, 1,000 videos/month.{' '}
+              {playlist.plan === 'pack'
+                ? <>Course Pack active — <span className="font-mono font-medium text-foreground">{playlist.credits_remaining}</span> credits left (1 credit = 1 video, AI summary = 2).{' '}</>
+                : <>Pro license active — quota: 200 videos/day, 1,000 videos/month.{' '}</>}
               <a href="https://customer.dodopayments.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                Manage subscription & billing
+                Manage billing & keys
               </a>
             </p>
           )}
