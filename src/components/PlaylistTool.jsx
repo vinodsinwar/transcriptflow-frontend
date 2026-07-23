@@ -5,6 +5,7 @@ import TranscriptViewer from './TranscriptViewer';
 import { plainText, aiPrompt, toCSV, toMarkdown } from '../lib/transcriptText';
 import ExtraFormats from './ExtraFormats';
 import SummarizeButton from './SummarizeButton';
+import LicenseActivation from './LicenseActivation';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -67,6 +68,7 @@ const PlaylistTool = () => {
   const [searchAllResults, setSearchAllResults] = useState(null);
   const [plSummary, setPlSummary] = useState(null);
   const [plSummaryState, setPlSummaryState] = useState('idle');
+  const [showActivate, setShowActivate] = useState(false);
 
   const fetchPlaylist = async (playlistUrl, key) => {
     setLoading(true);
@@ -575,6 +577,23 @@ const PlaylistTool = () => {
           )}
         </button>
       </form>
+
+      {!licenseKey && !playlist && (
+        <div className="mt-3 text-center">
+          {showActivate ? (
+            <div className="glass rounded-xl p-4 text-left max-w-md mx-auto">
+              <LicenseActivation compact />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Bought a Course Pack or Pro?{' '}
+              <button onClick={() => setShowActivate(true)} className="text-primary hover:underline font-medium">
+                Activate your key
+              </button>
+            </p>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

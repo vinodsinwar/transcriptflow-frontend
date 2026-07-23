@@ -1,6 +1,7 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Check, Sparkles } from 'lucide-react';
+import LicenseActivation from '../components/LicenseActivation';
 
 const freeFeatures = [
   'Unlimited single-video transcripts',
@@ -112,7 +113,7 @@ const PricingPage = () => {
                 Try 2 videos free first
               </a>
               <p className="text-center text-xs text-muted-foreground mt-3">
-                1 credit = 1 video transcript
+                1 credit = 1 video · key arrives by email — activate it below
               </p>
             </div>
 
@@ -140,9 +141,18 @@ const PricingPage = () => {
                 Try it on my playlist — free
               </a>
               <p className="text-center text-xs text-muted-foreground mt-3">
-                First 2 videos free · no signup · no card needed
+                First 2 videos free · key arrives by email — activate it below
               </p>
             </div>
+          </div>
+
+          {/* Activation strip — post-purchase landing spot */}
+          <div id="activate" className="glass rounded-xl p-6 sm:p-8 mt-10 text-center scroll-mt-24">
+            <h2 className="text-lg font-bold mb-1">Already purchased? Activate your key</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Paste the license key from your purchase email — it unlocks everything on this browser instantly.
+            </p>
+            <LicenseActivation />
           </div>
         </section>
 

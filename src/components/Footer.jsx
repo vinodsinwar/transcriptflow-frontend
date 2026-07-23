@@ -29,6 +29,7 @@ const Footer = () => {
       { name: 'All guides →', href: '/blog/' }
     ],
     support: [
+      { name: 'Activate license', href: '/pricing#activate' },
       { name: 'Contact Us', href: '#contact' },
       { name: 'Report a Bug', href: 'mailto:support@transcriptflow.io?subject=Bug%20Report' },
       { name: 'Privacy Policy', href: '/privacy-policy' },
