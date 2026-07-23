@@ -21,3 +21,42 @@ export const aiPrompt = (transcript, videoTitle) => {
     `--- TRANSCRIPT ---\n\n${plainText(transcript)}`
   );
 };
+
+const csvEscape = (s) => `"${String(s).replace(/"/g, '""')}"`;
+
+/** CSV of raw segments: start,duration,text — for spreadsheets and data work. */
+export const toCSV = (segments) =>
+  'start,duration,text\n' +
+  (segments || []).map((s) => `${s.start},${s.duration},${csvEscape(s.text)}`).join('\n');
+
+/** Structured JSON export of the whole transcript payload. */
+export const toJSONExport = (payload) =>
+  JSON.stringify(
+    {
+      video_id: payload.video_id,
+      video_title: payload.video_title,
+      language: payload.language,
+      word_count: payload.word_count,
+      duration: payload.duration,
+      segments: payload.segments || [],
+    },
+    null,
+    2
+  );
+
+/** Markdown (Obsidian/Notion-friendly): title, meta line, bold timestamps. */
+export const toMarkdown = (payload) => {
+  const title = payload.video_title || 'YouTube Video Transcript';
+  const lines = (payload.transcript || '')
+    .split('\n')
+    .map((line) => {
+      const m = line.match(/^(\[\d+:\d{2}\])\s?(.*)$/);
+      return m ? `**${m[1]}** ${m[2]}` : line;
+    })
+    .join('\n\n');
+  return (
+    `# ${title}\n\n` +
+    `> Language: ${payload.language || '?'} · Words: ${payload.word_count ?? '?'} · ` +
+    `Source: https://youtu.be/${payload.video_id}\n\n${lines}\n`
+  );
+};

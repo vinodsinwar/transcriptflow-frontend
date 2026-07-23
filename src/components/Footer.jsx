@@ -17,7 +17,8 @@ const Footer = () => {
       { name: 'Translate Transcript', href: '/translate-youtube-transcript' },
       { name: 'Download Subtitles', href: '/download-youtube-subtitles' },
       { name: 'Playlist Transcripts', href: '/youtube-playlist-transcript' },
-      { name: 'Pricing', href: '/pricing' }
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'Developer API', href: '/api' }
     ],
     guides: [
       { name: 'Get a YouTube Transcript', href: '/blog/how-to-get-youtube-video-transcript' },

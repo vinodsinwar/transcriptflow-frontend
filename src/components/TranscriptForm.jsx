@@ -3,6 +3,8 @@ import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw, Spa
 import TranscriptViewer from './TranscriptViewer';
 import ProcessingOverlay from './ProcessingOverlay';
 import { plainText, aiPrompt } from '../lib/transcriptText';
+import ExtraFormats from './ExtraFormats';
+import SummarizeButton from './SummarizeButton';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -327,6 +329,8 @@ const TranscriptForm = ({ mode = 'download' }) => {
                   : <Download className="w-4 h-4" />}
                 <span>{exporting === 'pdf' ? 'Preparing…' : 'PDF'}</span>
               </button>
+              <ExtraFormats payload={transcript} />
+              <SummarizeButton videoUrl={`https://youtu.be/${transcript.video_id}`} />
               {mode !== 'translate' && translateSelect}
             </div>
           </div>

@@ -3,6 +3,8 @@ import { Play, Youtube, Download, Copy, FileText, ClipboardPaste, RotateCcw, His
 import { plainText, aiPrompt } from '../lib/transcriptText';
 import TranscriptPaperCard from './TranscriptPaperCard';
 import RatingWidget from './RatingWidget';
+import ExtraFormats from './ExtraFormats';
+import SummarizeButton from './SummarizeButton';
 import ProcessingOverlay from './ProcessingOverlay';
 import ResultBanner from './ResultBanner';
 import TranscriptViewer from './TranscriptViewer';
@@ -514,6 +516,8 @@ const Hero = () => {
                     : <Download className="w-4 h-4" />}
                   <span>{exporting === 'pdf' ? 'Preparing…' : 'Download PDF'}</span>
                 </button>
+                <ExtraFormats payload={transcript} />
+                <SummarizeButton videoUrl={`https://youtu.be/${transcript.video_id}`} />
                 <select
                   aria-label="Translate transcript"
                   className="input-modern text-sm py-2 px-3 max-w-[220px] bg-background/80"

@@ -13,11 +13,13 @@ const freeFeatures = [
 
 const proFeatures = [
   'Everything in Free',
-  'Full playlist exports — up to 100 videos per playlist',
-  '1,000 videos per month (200/day)',
-  'Export as a ZIP of TXT + SRT files, or one combined PDF/Word document',
-  'License key by email — still no account needed',
-  'Cancel anytime; key management via customer portal',
+  'Full playlists & channels — up to 100 videos each, 1,000/month (200/day)',
+  'Every export style: ZIP (TXT · SRT · MD · CSV), combined PDF/Word/TXT, or one document per video',
+  'Bulk translation — export a whole playlist in another language',
+  'AI summaries of videos and whole playlists (150/month)',
+  'Search across every transcript in a playlist',
+  'Developer API — your license key is the API key',
+  'License key by email — no account; cancel anytime via customer portal',
 ];
 
 const faqs = [
@@ -82,7 +84,8 @@ const PricingPage = () => {
               <p className="text-4xl font-bold mb-1">
                 $4.99<span className="text-lg font-normal text-muted-foreground">/month</span>
               </p>
-              <p className="text-sm text-muted-foreground mb-6">or $29/year — save 51%</p>
+              <p className="text-sm text-muted-foreground mb-2">or $29/year — save 51%</p>
+              <p className="text-xs text-muted-foreground mb-6">Comparable tools charge $9.99+ for the same 1,000 videos — and cap video length. We don't.</p>
               <ul className="space-y-3 mb-8">
                 {proFeatures.map((f) => (
                   <li key={f} className="flex items-start space-x-2 text-sm text-muted-foreground">

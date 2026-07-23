@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, ListVideo, Lock, CheckCircle2, Download, Copy, KeyRound, Sparkles, FileText, FileType, FileArchive } from 'lucide-react';
+import { Play, ListVideo, Lock, CheckCircle2, Download, Copy, KeyRound, Sparkles, FileText, FileType, FileArchive, Search, Link2, ListPlus } from 'lucide-react';
 import ProcessingOverlay from './ProcessingOverlay';
 import TranscriptViewer from './TranscriptViewer';
-import { plainText, aiPrompt } from '../lib/transcriptText';
+import { plainText, aiPrompt, toCSV, toMarkdown } from '../lib/transcriptText';
+import ExtraFormats from './ExtraFormats';
+import SummarizeButton from './SummarizeButton';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://transcriptflow-backend.onrender.com';
 
@@ -54,6 +56,17 @@ const PlaylistTool = () => {
   const [stopChoice, setStopChoice] = useState(null); // {results, failures, total, format}
   const cancelRef = useRef(false);
 
+  // Pro expansion state
+  const [inputMode, setInputMode] = useState('link'); // 'link' (playlist/channel URL) | 'list' (pasted video URLs)
+  const [listInput, setListInput] = useState('');
+  const [exportLanguage, setExportLanguage] = useState('');
+  const [bulkLangs, setBulkLangs] = useState(null);
+  const [bulkLangsLoading, setBulkLangsLoading] = useState(false);
+  const [searchAllQuery, setSearchAllQuery] = useState('');
+  const [searchAllResults, setSearchAllResults] = useState(null);
+  const [plSummary, setPlSummary] = useState(null);
+  const [plSummaryState, setPlSummaryState] = useState('idle');
+
   const fetchPlaylist = async (playlistUrl, key) => {
     setLoading(true);
     setError(null);
@@ -84,9 +97,46 @@ const PlaylistTool = () => {
     }
   };
 
+  const parseVideoList = (text) => {
+    const ids = [];
+    const seen = new Set();
+    for (const m of text.matchAll(/(?:v=|youtu\.be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/g)) {
+      if (!seen.has(m[1])) { seen.add(m[1]); ids.push(m[1]); }
+    }
+    for (const line of text.split(/\s+/)) {
+      if (/^[a-zA-Z0-9_-]{11}$/.test(line) && !seen.has(line)) { seen.add(line); ids.push(line); }
+    }
+    return ids.slice(0, 100);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (inputMode === 'list') {
+      const ids = parseVideoList(listInput);
+      if (ids.length === 0) {
+        setError('No YouTube video links found — paste one link per line.');
+        return;
+      }
+      setError(null);
+      setSearchAllResults(null);
+      setPlSummary(null);
+      const licensed = Boolean(licenseKey);
+      setPlaylist({
+        playlist_id: null,
+        isCustomList: true,
+        title: `My video list (${ids.length})`,
+        videos: ids.map((id) => ({ video_id: id, title: id, duration_seconds: 0, playable: true })),
+        video_count: ids.length,
+        unlocked_ids: licensed ? ids : ids.slice(0, 2),
+        licensed,
+        free_limit: 2,
+        success: true,
+      });
+      return;
+    }
     if (!url.trim()) return;
+    setSearchAllResults(null);
+    setPlSummary(null);
     await fetchPlaylist(url.trim(), licenseKey);
   };
 
@@ -213,6 +263,8 @@ const PlaylistTool = () => {
         const base = `${String(i + 1).padStart(2, '0')}-${slugify(r.title)}`;
         zip.file(`${base}.txt`, r.transcript);
         if (r.srt) zip.file(`${base}.srt`, r.srt);
+        zip.file(`${base}.md`, toMarkdown({ video_title: r.title, transcript: r.transcript, language: r.language, word_count: r.word_count, video_id: r.video_id }));
+        if (r.segments?.length) zip.file(`${base}.csv`, toCSV(r.segments));
       });
       const combined = results.map((r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`);
       zip.file('_all-transcripts-combined.txt', combined.join('\n\n'));
@@ -230,6 +282,40 @@ const PlaylistTool = () => {
         (r) => `=== ${r.title} (https://youtu.be/${r.video_id}) ===\n\n${r.transcript}\n`
       );
       saveBlob(new Blob([header + '\n' + combined.join('\n\n')], { type: 'text/plain' }), `${slugify(playlist.title)}-combined.txt`);
+    } else if (format === 'pdfzip' || format === 'docxzip') {
+      // One document per video, zipped server-side.
+      const docFormat = format === 'pdfzip' ? 'pdf' : 'docx';
+      setExporting({ done: total, total, currentTitle: `Building ${docFormat.toUpperCase()}s…` });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), COMBINED_EXPORT_TIMEOUT_MS);
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/playlist/export-docs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            format: docFormat,
+            playlist_title: playlist.title,
+            license_key: licenseKey || undefined,
+            videos: results.map((r) => ({
+              video_id: r.video_id, title: r.title, transcript: r.transcript,
+              language: r.language, word_count: r.word_count,
+            })),
+          }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.error || 'Document export failed. Please try again.');
+        } else {
+          saveBlob(await response.blob(), `${slugify(playlist.title)}-${docFormat}s.zip`);
+        }
+      } catch (err) {
+        setError(err.name === 'AbortError'
+          ? 'The document export is taking too long — try fewer videos or the ZIP export.'
+          : 'Document export failed. Please try again.');
+      } finally {
+        clearTimeout(timer);
+      }
     } else {
       // Combined PDF / Word: one formatting call, no extra YouTube fetches needed.
       setExporting({ done: total, total, currentTitle: `Building combined ${format.toUpperCase()}…` });
@@ -272,37 +358,38 @@ const PlaylistTool = () => {
     setExporting(null);
   };
 
-  const runExport = async (format) => {
-    if (!playlist || exporting) return;
-    cancelRef.current = false;
-    const ids = playlist.unlocked_ids;
-    const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
-    const results = []; // {video_id, title, transcript, srt, language, word_count}
+  // Shared bulk-fetch loop: fills results (and the viewer cache when fetching
+  // the default language). targetLanguage skips the cache so translated exports
+  // don't pollute the original-language viewer.
+  const fetchTranscripts = async (ids, byId, targetLanguage) => {
+    const results = []; // {video_id, title, transcript, srt, language, word_count, segments}
     const failures = [];
     let quotaHit = false;
-    setError(null);
 
     for (let i = 0; i < ids.length; i++) {
       if (cancelRef.current) break;
       const id = ids[i];
       setExporting({ done: i, total: ids.length, currentTitle: byId[id]?.title || id });
-      // Reuse anything already fetched into the viewer to save requests/quota.
-      const cached = videoCacheRef.current.get(id);
-      if (cached && cached.transcript) {
-        results.push({
-          video_id: id,
-          title: cached.video_title || byId[id]?.title || id,
-          transcript: cached.transcript,
-          srt: cached.srt,
-          language: cached.language,
-          word_count: cached.word_count,
-        });
-        continue;
+      if (!targetLanguage) {
+        const cached = videoCacheRef.current.get(id);
+        if (cached && cached.transcript) {
+          results.push({
+            video_id: id,
+            title: cached.video_title || byId[id]?.title || id,
+            transcript: cached.transcript,
+            srt: cached.srt,
+            language: cached.language,
+            word_count: cached.word_count,
+            segments: cached.segments,
+          });
+          continue;
+        }
       }
       try {
         const endpoint = playlist.licensed ? '/api/playlist/transcript' : '/api/transcript';
         const body = { video_url: `https://youtu.be/${id}` };
         if (playlist.licensed) body.license_key = licenseKey;
+        if (targetLanguage) body.target_language = targetLanguage;
         const response = await fetch(`${BACKEND_URL}${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -318,6 +405,7 @@ const PlaylistTool = () => {
           failures.push(byId[id]?.title || id);
           continue;
         }
+        if (!targetLanguage) videoCacheRef.current.set(id, data);
         results.push({
           video_id: id,
           title: data.video_title || byId[id]?.title || id,
@@ -325,11 +413,23 @@ const PlaylistTool = () => {
           srt: data.srt,
           language: data.language,
           word_count: data.word_count,
+          segments: data.segments,
         });
       } catch {
         failures.push(byId[id]?.title || id);
       }
     }
+    return { results, failures, quotaHit };
+  };
+
+  const runExport = async (format) => {
+    if (!playlist || exporting) return;
+    cancelRef.current = false;
+    const ids = playlist.unlocked_ids;
+    const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
+    setError(null);
+
+    const { results, failures, quotaHit } = await fetchTranscripts(ids, byId, exportLanguage || null);
 
     if (cancelRef.current) {
       setExporting(null);
@@ -349,36 +449,116 @@ const PlaylistTool = () => {
     await packageResults(results, failures, format);
   };
 
+  // Fetch everything (original language) into the local cache — powers
+  // cross-playlist search and playlist summaries.
+  const fetchAllForAnalysis = async () => {
+    if (!playlist || exporting) return null;
+    cancelRef.current = false;
+    const ids = playlist.unlocked_ids;
+    const byId = Object.fromEntries(playlist.videos.map((v) => [v.video_id, v]));
+    const { results } = await fetchTranscripts(ids, byId, null);
+    setExporting(null);
+    return results;
+  };
+
+  const runPlaylistSearch = async () => {
+    const q = searchAllQuery.trim().toLowerCase();
+    if (!q || !playlist) return;
+    // Make sure everything unlocked is fetched first
+    const missing = playlist.unlocked_ids.some((id) => !videoCacheRef.current.get(id));
+    if (missing) {
+      const r = await fetchAllForAnalysis();
+      if (!r) return;
+    }
+    const out = [];
+    for (const id of playlist.unlocked_ids) {
+      const data = videoCacheRef.current.get(id);
+      if (!data?.transcript) continue;
+      const hits = data.transcript.split('\n').filter((l) => l.toLowerCase().includes(q)).slice(0, 5);
+      if (hits.length) out.push({ video_id: id, title: data.video_title || id, hits });
+    }
+    setSearchAllResults(out);
+  };
+
+  const summarizePlaylist = async () => {
+    if (!playlist || plSummaryState === 'loading') return;
+    setPlSummaryState('loading');
+    setPlSummary(null);
+    try {
+      const results = await fetchAllForAnalysis();
+      if (!results || results.length === 0) { setPlSummaryState('idle'); return; }
+      const r = await fetch(`${BACKEND_URL}/api/summarize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          license_key: licenseKey,
+          mode: 'playlist',
+          playlist_title: playlist.title,
+          videos: results.map((v) => ({ video_id: v.video_id, title: v.title, transcript: v.transcript })),
+        }),
+      });
+      const d = await r.json();
+      if (d.summary) { setPlSummary(d); setPlSummaryState('done'); }
+      else { setError(d.error || 'Summary failed. Please try again.'); setPlSummaryState('idle'); }
+    } catch {
+      setError('Summary failed. Please try again.');
+      setPlSummaryState('idle');
+    }
+  };
+
   const lockedCount = playlist ? playlist.video_count - playlist.unlocked_ids.length : 0;
   const isUnlocked = (id) => playlist?.unlocked_ids.includes(id);
 
   const bulkButtons = [
-    { fmt: 'zip', label: 'ZIP (TXT + SRT)', Icon: FileArchive },
+    { fmt: 'zip', label: 'ZIP (TXT · SRT · MD · CSV)', Icon: FileArchive },
     { fmt: 'txt', label: 'Combined TXT', Icon: FileText },
     { fmt: 'pdf', label: 'Combined PDF', Icon: FileType },
     { fmt: 'docx', label: 'Combined Word', Icon: FileType },
+    { fmt: 'pdfzip', label: 'PDF per video (ZIP)', Icon: FileArchive },
+    { fmt: 'docxzip', label: 'Word per video (ZIP)', Icon: FileArchive },
   ];
 
   return (
     <div className="w-full max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-            <ListVideo className="w-5 h-5 text-red-500" />
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setInputMode('link')}
+            className={`text-sm px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${inputMode === 'link' ? 'bg-foreground text-background' : 'btn-secondary'}`}>
+            <Link2 className="w-3.5 h-3.5" /> Playlist or channel link
+          </button>
+          <button type="button" onClick={() => setInputMode('list')}
+            className={`text-sm px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${inputMode === 'list' ? 'bg-foreground text-background' : 'btn-secondary'}`}>
+            <ListPlus className="w-3.5 h-3.5" /> Paste video links
+          </button>
+        </div>
+        {inputMode === 'link' ? (
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+              <ListVideo className="w-5 h-5 text-red-500" />
+            </div>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Paste a playlist URL (list=…) or channel URL (@name)"
+              className="input-modern w-full py-4 text-lg"
+              style={{ paddingLeft: '3rem', paddingRight: '1rem' }}
+              required
+            />
           </div>
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste a YouTube playlist URL (contains list=...)"
-            className="input-modern w-full py-4 text-lg"
-            style={{ paddingLeft: '3rem', paddingRight: '1rem' }}
+        ) : (
+          <textarea
+            value={listInput}
+            onChange={(e) => setListInput(e.target.value)}
+            placeholder={"One YouTube link per line — up to 100 videos\nhttps://youtu.be/…\nhttps://www.youtube.com/watch?v=…"}
+            rows={4}
+            className="input-modern w-full py-3 px-4 text-base font-mono"
             required
           />
-        </div>
+        )}
         <button
           type="submit"
-          disabled={loading || !url.trim()}
+          disabled={loading || (inputMode === 'link' ? !url.trim() : !listInput.trim())}
           className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
@@ -389,7 +569,7 @@ const PlaylistTool = () => {
           ) : (
             <>
               <Play className="w-5 h-5" />
-              <span>Load Playlist</span>
+              <span>{inputMode === 'list' ? 'Load Videos' : 'Load Playlist'}</span>
             </>
           )}
         </button>
@@ -426,7 +606,7 @@ const PlaylistTool = () => {
                     Unlock all {playlist.video_count} videos with TranscriptFlow Pro
                   </h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Export up to 1,000 videos per month — as a ZIP of TXT + SRT files, or one combined PDF/Word document.
+                    1,000 videos/month: playlists & channels, every export format, bulk translation, AI summaries, and API access.
                     <span className="text-foreground font-medium"> $4.99/month</span> or
                     <span className="text-foreground font-medium"> $29/year</span>.
                   </p>
@@ -579,6 +759,8 @@ const PlaylistTool = () => {
                     : <Download className="w-4 h-4" />}
                   <span>{exportingSingle === 'pdf' ? 'Preparing…' : 'PDF'}</span>
                 </button>
+                <ExtraFormats payload={currentVideo} />
+                <SummarizeButton videoUrl={`https://youtu.be/${currentVideo.video_id}`} />
               </div>
             )}
 
@@ -615,9 +797,110 @@ const PlaylistTool = () => {
                 </button>
               ))}
             </div>
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <select
+                aria-label="Translate exports to"
+                value={exportLanguage}
+                disabled={!!exporting}
+                onFocus={async () => {
+                  if (bulkLangs || bulkLangsLoading || !playlist.unlocked_ids[0]) return;
+                  setBulkLangsLoading(true);
+                  try {
+                    const r = await fetch(`${BACKEND_URL}/api/languages`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ video_url: `https://youtu.be/${playlist.unlocked_ids[0]}` }),
+                    });
+                    const d = await r.json();
+                    setBulkLangs(d.translation_languages || []);
+                  } catch { setBulkLangs([]); } finally { setBulkLangsLoading(false); }
+                }}
+                onChange={(e) => setExportLanguage(e.target.value)}
+                className="input-modern text-sm py-2 px-3 max-w-[240px]"
+              >
+                <option value="">{bulkLangsLoading ? 'Loading languages…' : '🌐 Export in original language'}</option>
+                {(bulkLangs || []).map((l) => (
+                  <option key={l.language_code} value={l.language_code}>Translate all to {l.language}</option>
+                ))}
+              </select>
+              {playlist.licensed ? (
+                <button onClick={summarizePlaylist} disabled={plSummaryState === 'loading' || !!exporting}
+                  className="btn-secondary flex items-center space-x-2 text-sm disabled:opacity-50">
+                  {plSummaryState === 'loading'
+                    ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                    : <Sparkles className="w-4 h-4" />}
+                  <span>{plSummaryState === 'loading' ? 'Summarizing…' : 'AI Summary of the playlist'}</span>
+                </button>
+              ) : (
+                <a href="/pricing" className="btn-secondary flex items-center space-x-2 text-sm">
+                  <Sparkles className="w-4 h-4" />
+                  <span>AI Summary <span className="text-xs text-muted-foreground">(Pro)</span></span>
+                </a>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground mt-3">
               Very long playlists in non-Latin languages can produce large PDFs — Combined Word or TXT stays small.
+              Translated exports fetch each video in the chosen language.
             </p>
+          </div>
+
+          {/* Playlist AI summary result */}
+          {plSummary && (
+            <div className="glass p-5 rounded-xl">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4" /> Playlist Summary</p>
+                <span className="text-xs text-muted-foreground font-mono">{plSummary.summaries_used}/{plSummary.summaries_limit} this month</span>
+              </div>
+              <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">{plSummary.summary}</div>
+            </div>
+          )}
+
+          {/* Search across every transcript in the playlist */}
+          <div className="glass p-4 sm:p-6 rounded-xl">
+            <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+              <Search className="w-4 h-4" /> Search across the whole playlist
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="text"
+                value={searchAllQuery}
+                onChange={(e) => setSearchAllQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') runPlaylistSearch(); }}
+                placeholder="Find a phrase in every video…"
+                className="input-modern flex-1 min-w-[220px] py-2 px-3 text-sm"
+              />
+              <button onClick={runPlaylistSearch} disabled={!!exporting || !searchAllQuery.trim()}
+                className="btn-primary text-sm disabled:opacity-50">
+                Search
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Searches the {playlist.unlocked_ids.length} unlocked videos — transcripts are fetched first if needed{playlist.licensed ? ' (counts toward your quota once; repeats are cached)' : ''}.
+            </p>
+            {searchAllResults !== null && (
+              <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                {searchAllResults.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No matches found.</p>
+                )}
+                {searchAllResults.map((r) => (
+                  <div key={r.video_id}>
+                    <p className="text-sm font-medium mb-1 truncate">{r.title}</p>
+                    <div className="space-y-1">
+                      {r.hits.map((line, i) => {
+                        const m = line.match(/^\[(\d+):(\d{2})\]/);
+                        const t = m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : 0;
+                        return (
+                          <a key={i} href={`https://youtu.be/${r.video_id}?t=${t}`} target="_blank" rel="noopener noreferrer"
+                             className="block text-xs text-muted-foreground hover:text-foreground font-mono truncate">
+                            {line}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Video list */}

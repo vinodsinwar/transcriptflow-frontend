@@ -5,7 +5,7 @@ import PlaylistTool from '../components/PlaylistTool';
 import { ListVideo, Archive, GraduationCap, Database, FolderArchive, FileText } from 'lucide-react';
 
 const steps = [
-  { n: '1', title: 'Paste the playlist URL', text: 'Copy any YouTube playlist link (it contains "list=") and paste it above.' },
+  { n: '1', title: 'Paste a playlist or channel URL', text: 'Any YouTube playlist link (contains "list="), a channel URL (@name), or just paste a list of video links.' },
   { n: '2', title: 'See every video', text: 'We list the playlist’s videos with titles and durations in seconds.' },
   { n: '3', title: 'Pick your format', text: 'A ZIP of TXT + SRT files per video, or the whole playlist combined into one PDF or Word document.' },
   { n: '4', title: 'Download transcripts', text: 'Get the first 2 videos free in any format — or unlock the whole playlist with Pro.' },
@@ -41,7 +41,7 @@ const faqs = [
   },
   {
     q: 'What does TranscriptFlow Pro cost?',
-    a: '$4.99/month or $29/year. Pro lets you export up to 1,000 videos per month (max 200/day, 100 per playlist) — far more generous than comparable tools.'
+    a: '$4.99/month or $29/year. Pro covers 1,000 videos per month (max 200/day, 100 per playlist or channel), bulk translation, AI summaries, playlist-wide search, and API access — comparable tools charge $9.99+ for less.'
   },
   {
     q: 'Do I need an account?',
@@ -87,8 +87,8 @@ const PlaylistPage = () => {
             YouTube <span className="gradient-text">Playlist Transcript</span> Downloader
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            Download the transcripts of an entire YouTube playlist — as a ZIP of text and subtitle
-            files, or one combined PDF or Word document. First 2 videos free — no signup required.
+            Download the transcripts of an entire YouTube playlist or channel — as a ZIP of files,
+            one combined document, or one PDF/Word per video. First 2 videos free — no signup required.
           </p>
           <PlaylistTool />
           <div className="flex justify-center mt-8">
